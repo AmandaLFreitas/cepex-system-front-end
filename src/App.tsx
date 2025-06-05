@@ -9,6 +9,8 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Users from "./pages/Users";
 import Activities from "./pages/Activities";
+import Monitorias from "./pages/Monitorias";
+import ProjetosPesquisa from "./pages/ProjetosPesquisa";
 import Approvals from "./pages/Approvals";
 import Certificates from "./pages/Certificates";
 import NotFound from "./pages/NotFound";
@@ -27,6 +29,8 @@ const App = () => (
             <Route path="/" element={<Dashboard />} />
             <Route path="/usuarios" element={<Users />} />
             <Route path="/atividades" element={<Activities />} />
+            <Route path="/monitorias" element={<Monitorias />} />
+            <Route path="/projetos-pesquisa" element={<ProjetosPesquisa />} />
             <Route path="/aprovacoes" element={<Approvals />} />
             <Route path="/certificados" element={<Certificates />} />
             <Route path="*" element={<NotFound />} />
