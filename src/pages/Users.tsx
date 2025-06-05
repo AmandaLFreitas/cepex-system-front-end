@@ -28,7 +28,7 @@ const Users = () => {
       title: "Professores",
       description: "Docentes responsáveis por disciplinas e projetos",
       icon: UserCheck,
-      color: "bg-gradient-to-br from-[#EC0444]/80 to-[#EC0444]/40",
+      color: "bg-gradient-to-br from-[#EC0444]/60 to-[#EC0444]/30",
       textColor: "text-white",
       count: "156",
       permissions: [
@@ -54,7 +54,7 @@ const Users = () => {
       title: "Secretarias",
       description: "Equipe administrativa de suporte institucional",
       icon: Shield,
-      color: "bg-gradient-to-br from-[#EC0444]/80 to-[#EC0444]/40",
+      color: "bg-gradient-to-br from-[#EC0444]/60 to-[#EC0444]/30",
       textColor: "text-white",
       count: "28",
       permissions: [
@@ -149,7 +149,7 @@ const Users = () => {
             ))}
           </div>
 
-          <Card className="bg-gradient-to-br from-[#EC0444]/80 to-[#EC0444]/40 border-border">
+          <Card className="bg-gradient-to-br from-slate-800 to-slate-900 border-border">
             <CardHeader>
               <CardTitle className="text-white text-xl">
                 Características dos Usuários
@@ -160,7 +160,7 @@ const Users = () => {
                 {userCharacteristics.map((char, index) => (
                   <div key={index} className="text-center">
                     <h3 className="text-white font-semibold mb-2">{char.title}</h3>
-                    <p className="text-slate-200 text-sm">{char.description}</p>
+                    <p className="text-slate-300 text-sm">{char.description}</p>
                   </div>
                 ))}
               </div>

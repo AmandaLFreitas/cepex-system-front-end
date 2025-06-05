@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -10,10 +9,29 @@ import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import CreateProjetoDialog from "@/components/CreateProjetoDialog";
+import { useToast } from "@/components/ui/use-toast";
 
 const ProjetosPesquisa = () => {
   const navigate = useNavigate();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [inscricoes, setInscricoes] = useState<number[]>([2]); // Projeto 2 já inscrito
+  const { toast } = useToast();
+
+  const handleInscricao = (projetoId: number, titulo: string) => {
+    if (inscricoes.includes(projetoId)) {
+      setInscricoes(inscricoes.filter(id => id !== projetoId));
+      toast({
+        title: "Inscrição cancelada",
+        description: `Você cancelou sua inscrição no projeto ${titulo}`,
+      });
+    } else {
+      setInscricoes([...inscricoes, projetoId]);
+      toast({
+        title: "Inscrição realizada",
+        description: `Você se inscreveu no projeto ${titulo}`,
+      });
+    }
+  };
 
   const projetos = [
     {
@@ -144,18 +162,19 @@ const ProjetosPesquisa = () => {
                   </div>
                   
                   <div className="pt-2">
-                    {projeto.inscrito ? (
-                      <Button 
-                        variant="outline" 
-                        className="w-full border-[#EC0444] text-[#EC0444] hover:bg-[#EC0444] hover:text-white"
-                      >
-                        Cancelar Inscrição
-                      </Button>
-                    ) : (
-                      <Button className="w-full bg-[#EC0444] hover:bg-[#EC0444]/90">
-                        Inscrever-se
-                      </Button>
-                    )}
+                    <Button 
+                      className={`w-full ${
+                        inscricoes.includes(projeto.id)
+                          ? 'bg-red-600 hover:bg-red-700' 
+                          : 'bg-[#EC0444] hover:bg-[#EC0444]/90'
+                      }`}
+                      onClick={() => handleInscricao(projeto.id, projeto.titulo)}
+                    >
+                      {inscricoes.includes(projeto.id) 
+                        ? 'Cancelar Inscrição' 
+                        : 'Inscrever-se'
+                      }
+                    </Button>
                   </div>
                 </CardContent>
               </Card>

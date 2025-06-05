@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -10,10 +9,29 @@ import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import CreateMonitoriaDialog from "@/components/CreateMonitoriaDialog";
+import { useToast } from "@/components/ui/use-toast";
 
 const Monitorias = () => {
   const navigate = useNavigate();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [inscricoes, setInscricoes] = useState<number[]>([]);
+  const { toast } = useToast();
+
+  const handleInscricao = (monitoriaId: number, disciplina: string) => {
+    if (inscricoes.includes(monitoriaId)) {
+      setInscricoes(inscricoes.filter(id => id !== monitoriaId));
+      toast({
+        title: "Candidatura cancelada",
+        description: `Você cancelou sua candidatura para monitoria de ${disciplina}`,
+      });
+    } else {
+      setInscricoes([...inscricoes, monitoriaId]);
+      toast({
+        title: "Candidatura realizada",
+        description: `Você se candidatou para monitoria de ${disciplina}`,
+      });
+    }
+  };
 
   const monitorias = [
     {
@@ -158,8 +176,18 @@ const Monitorias = () => {
                   
                   <div className="pt-4 space-y-2">
                     {monitoria.status === 'Aberta' ? (
-                      <Button className="w-full bg-[#EC0444] hover:bg-[#EC0444]/90">
-                        Candidatar-se a Monitor
+                      <Button 
+                        className={`w-full ${
+                          inscricoes.includes(monitoria.id) 
+                            ? 'bg-red-600 hover:bg-red-700' 
+                            : 'bg-[#EC0444] hover:bg-[#EC0444]/90'
+                        }`}
+                        onClick={() => handleInscricao(monitoria.id, monitoria.disciplina)}
+                      >
+                        {inscricoes.includes(monitoria.id) 
+                          ? 'Cancelar Candidatura' 
+                          : 'Candidatar-se a Monitor'
+                        }
                       </Button>
                     ) : (
                       <div className="text-center py-3 bg-muted rounded">
