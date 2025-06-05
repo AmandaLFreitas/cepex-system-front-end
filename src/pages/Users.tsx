@@ -1,6 +1,7 @@
 
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import FloatingRating from "@/components/FloatingRating";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Users as UsersIcon, GraduationCap, UserCheck, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,7 +15,7 @@ const Users = () => {
       title: "Alunos",
       description: "Estudantes matriculados em cursos da instituição",
       icon: GraduationCap,
-      color: "bg-slate-700",
+      color: "bg-card",
       count: "1,234",
       permissions: [
         "Visualizar Atividades",
@@ -26,7 +27,7 @@ const Users = () => {
       title: "Professores",
       description: "Docentes responsáveis por disciplinas e projetos",
       icon: UserCheck,
-      color: "bg-gradient-to-br from-pink-600 to-pink-700",
+      color: "bg-[#EC0444]",
       count: "156",
       permissions: [
         "Criar Atividades",
@@ -38,7 +39,7 @@ const Users = () => {
       title: "Coordenadores",
       description: "Responsáveis por coordenar cursos e departamentos",
       icon: UsersIcon,
-      color: "bg-slate-700",
+      color: "bg-card",
       count: "43",
       permissions: [
         "Revisar Atividades",
@@ -50,7 +51,7 @@ const Users = () => {
       title: "Secretarias",
       description: "Equipe administrativa de suporte institucional",
       icon: Shield,
-      color: "bg-gradient-to-br from-pink-600 to-pink-700",
+      color: "bg-[#EC0444]",
       count: "28",
       permissions: [
         "Aprovação final",
@@ -80,7 +81,7 @@ const Users = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-800 flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col">
       <Header />
       
       <main className="flex-1 p-6">
@@ -90,18 +91,18 @@ const Users = () => {
               variant="ghost"
               size="icon"
               onClick={() => navigate("/")}
-              className="text-slate-300 hover:text-white mr-4"
+              className="text-muted-foreground hover:text-foreground mr-4"
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div>
-              <nav className="text-sm text-slate-400 mb-2">
+              <nav className="text-sm text-muted-foreground mb-2">
                 Início / Usuários
               </nav>
-              <h1 className="text-3xl font-bold text-white">
+              <h1 className="text-3xl font-bold text-foreground">
                 Módulo de Usuários
               </h1>
-              <p className="text-slate-300 mt-2">
+              <p className="text-muted-foreground mt-2">
                 Gerencie todos os perfis de usuários do sistema acadêmico
               </p>
             </div>
@@ -111,29 +112,29 @@ const Users = () => {
             {userTypes.map((type, index) => (
               <Card
                 key={index}
-                className={`${type.color} border-slate-600 cursor-pointer hover:scale-105 transition-transform duration-200`}
+                className={`${type.color} border-border cursor-pointer hover:scale-105 transition-transform duration-200`}
               >
                 <CardHeader className="pb-4">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-white text-xl">
+                    <CardTitle className={`text-xl ${type.color === 'bg-[#EC0444]' ? 'text-white' : 'text-foreground'}`}>
                       {type.title}
                     </CardTitle>
                     <div className="flex items-center space-x-2">
-                      <span className="text-2xl font-bold text-white">{type.count}</span>
-                      <type.icon className="h-8 w-8 text-white" />
+                      <span className={`text-2xl font-bold ${type.color === 'bg-[#EC0444]' ? 'text-white' : 'text-foreground'}`}>{type.count}</span>
+                      <type.icon className={`h-8 w-8 ${type.color === 'bg-[#EC0444]' ? 'text-white' : 'text-foreground'}`} />
                     </div>
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-slate-200 mb-4">
+                  <p className={`mb-4 ${type.color === 'bg-[#EC0444]' ? 'text-slate-200' : 'text-muted-foreground'}`}>
                     {type.description}
                   </p>
                   <div>
-                    <h4 className="text-slate-300 font-semibold mb-2">Permissões:</h4>
+                    <h4 className={`font-semibold mb-2 ${type.color === 'bg-[#EC0444]' ? 'text-slate-300' : 'text-muted-foreground'}`}>Permissões:</h4>
                     <ul className="space-y-1">
                       {type.permissions.map((permission, idx) => (
-                        <li key={idx} className="text-sm text-slate-300 flex items-center">
-                          <span className="w-2 h-2 bg-pink-500 rounded-full mr-2"></span>
+                        <li key={idx} className={`text-sm flex items-center ${type.color === 'bg-[#EC0444]' ? 'text-slate-300' : 'text-muted-foreground'}`}>
+                          <span className="w-2 h-2 bg-[#EC0444] rounded-full mr-2"></span>
                           {permission}
                         </li>
                       ))}
@@ -144,7 +145,7 @@ const Users = () => {
             ))}
           </div>
 
-          <Card className="bg-gradient-to-r from-pink-600 to-pink-700 border-slate-600">
+          <Card className="bg-[#EC0444] border-border">
             <CardHeader>
               <CardTitle className="text-white text-xl">
                 Características dos Usuários
@@ -165,6 +166,7 @@ const Users = () => {
       </main>
 
       <Footer />
+      <FloatingRating />
     </div>
   );
 };

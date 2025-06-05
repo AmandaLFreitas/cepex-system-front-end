@@ -17,22 +17,22 @@ const Header = () => {
   ];
 
   return (
-    <header className="border-b bg-slate-900 border-slate-700">
+    <header className="border-b bg-card border-border">
       <div className="flex h-16 items-center px-6">
         <div className="flex items-center space-x-2">
-          <div className="w-6 h-6 bg-pink-500 rounded"></div>
-          <span className="text-xl font-bold text-white">CEPEX SYSTEM</span>
+          <div className="w-6 h-6 bg-[#EC0444] rounded"></div>
+          <span className="text-xl font-bold text-foreground">CEPEX SYSTEM</span>
         </div>
 
-        <nav className="hidden md:flex items-center space-x-6 mx-8">
+        <nav className="hidden md:flex items-center justify-center space-x-6 mx-auto">
           {navItems.map((item) => (
             <Link
               key={item.path}
               to={item.path}
-              className={`text-sm transition-colors hover:text-white ${
+              className={`text-sm transition-colors px-3 py-2 rounded-md ${
                 location.pathname === item.path
-                  ? "text-white border-b-2 border-pink-500 pb-4"
-                  : "text-slate-300"
+                  ? "text-foreground bg-[#EC0444] text-white"
+                  : "text-muted-foreground hover:text-foreground"
               }`}
             >
               {item.label}
@@ -45,7 +45,7 @@ const Header = () => {
             variant="ghost"
             size="icon"
             onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-            className="text-slate-300 hover:text-white"
+            className="text-muted-foreground hover:text-foreground"
           >
             <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
             <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
@@ -55,7 +55,7 @@ const Header = () => {
             <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
               <User className="h-4 w-4 text-white" />
             </div>
-            <span className="text-sm text-slate-300">P</span>
+            <span className="text-sm text-muted-foreground">P</span>
           </div>
         </div>
       </div>
