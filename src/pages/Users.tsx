@@ -2,7 +2,7 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Users, GraduationCap, UserCheck, Shield } from "lucide-react";
+import { ArrowLeft, Users as UsersIcon, GraduationCap, UserCheck, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 
@@ -37,7 +37,7 @@ const Users = () => {
     {
       title: "Coordenadores",
       description: "Responsáveis por coordenar cursos e departamentos",
-      icon: Users,
+      icon: UsersIcon,
       color: "bg-slate-700",
       count: "43",
       permissions: [
