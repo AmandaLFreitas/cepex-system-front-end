@@ -90,7 +90,8 @@ const Activities = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             {activityTypes.map((type, index) => (
-              <Card
+              <Card 
+              onClick={() => navigate(type.route)}
                 key={index}
                 className={`${type.color} border-border cursor-pointer transition-all duration-200 transform hover:scale-105`}
               >
@@ -112,13 +113,6 @@ const Activities = () => {
                       className="w-full bg-[#EC0444] hover:bg-[#EC0444]/90"
                     >
                       Acessar {type.title}
-                    </Button>
-                    <Button 
-                      variant={inscricoes.includes(type.id) ? "destructive" : "outline"}
-                      onClick={() => handleInscricao(type.title)}
-                      className="w-full"
-                    >
-                      {inscricoes.includes(type.id) ? "Desinscrever-se" : "Inscrever-se"}
                     </Button>
                   </div>
                 </CardContent>

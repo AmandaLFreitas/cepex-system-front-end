@@ -18,13 +18,21 @@ const Header = () => {
 
   return (
     <header className="border-b bg-card border-border">
-      <div className="flex h-16 items-center px-6">
+      <div className="flex h-16 items-center px-40 justify-between">
         <div className="flex items-center space-x-2">
-          <div className="w-6 h-6 bg-[#EC0444] rounded"></div>
+          <div 
+            className="w-12 h-12 rounded"
+            style={{
+              backgroundImage: `url(${'/biopark_logo.jpg'})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center"
+            }}
+            
+            ></div>
           <span className="text-xl font-bold text-foreground">CEPEX SYSTEM</span>
         </div>
 
-        <nav className="hidden md:flex items-center justify-center space-x-6 mx-auto">
+        <nav className="hidden md:flex items-center justify-center space-x-8 mx-auto">
           {navItems.map((item) => (
             <Link
               key={item.path}

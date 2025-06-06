@@ -159,39 +159,60 @@ const Certificates = () => {
             </Card>
           </div>
 
-          <Card className="bg-card border-border">
-            <CardHeader className="bg-muted">
-              <CardTitle className="text-foreground text-center">Modelo de Certificado</CardTitle>
-            </CardHeader>
-            <CardContent className="p-8">
-              <div className="border-4 border-[#EC0444] p-8 text-center bg-background">
-                <h2 className="text-2xl font-bold text-[#EC0444] mb-4">FACULDADE CONNECT</h2>
-                <p className="text-muted-foreground mb-6">Certificado de Participação</p>
-                
-                <div className="mb-6">
-                  <p className="text-lg mb-4 text-foreground">Certificamos que</p>
-                  <h3 className="text-2xl font-bold text-foreground mb-4">[Nome do Participante]</h3>
-                  <p className="text-base text-muted-foreground">
-                    participou do evento [Nome do Evento] com carga horária de [X] horas, realizado no período de [data início] a [data fim].
-                  </p>
-                </div>
+          <Card className="border border-border overflow-hidden">
+          <CardHeader className="bg-gradient-to-r from-college-blue to-college-red text-white">
+            <CardTitle>Modelo de Certificado</CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="p-8 bg-white dark:bg-card border-b border-border">
+              <div className="max-w-3xl mx-auto border border-college-blue/20 p-10 bg-white dark:bg-card text-foreground rounded-md">
+                <div className="flex flex-col items-center text-center space-y-6">
+                  <div className="space-y-1">
+                    <h2 className="text-college-blue dark:text-college-red font-bold text-2xl">
+                      BIOPARK EDUCAÇÃO
+                    </h2>
+                    <p className="text-muted-foreground">
+                      Certificado de Participação
+                    </p>
+                  </div>
 
-                <div className="flex justify-between items-end mt-12">
-                  <div className="text-center">
-                    <div className="border-t border-border pt-2">
-                      <p className="text-sm text-foreground">Coordenação</p>
-                      <p className="text-xs text-muted-foreground">[Cidade], [Data de emissão]</p>
+                  <div className="w-full border-t border-b border-border py-6 space-y-4">
+                    <p className="text-xl">Certificamos que</p>
+                    <p className="text-2xl font-semibold">
+                      Nome do Participante
+                    </p>
+                    <p className="text-base">
+                      participou do evento <strong>Título do Evento</strong>,
+                      realizado no período de <strong>DD/MM/AAAA</strong> a{" "}
+                      <strong>DD/MM/AAAA</strong>, com carga horária total de{" "}
+                      <strong>XX horas</strong>.
+                    </p>
+                  </div>
+
+                  <div className="pt-4 w-full flex flex-col md:flex-row justify-between items-center gap-8">
+                    <div className="text-center">
+                      <div className="w-40 border-t border-college-blue/50 dark:border-college-red/50 pt-2">
+                        <p className="text-sm font-medium">Coordenador</p>
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <div className="w-40 border-t border-college-blue/50 dark:border-college-red/50 pt-2">
+                        <p className="text-sm font-medium">
+                          Secretaria Acadêmica
+                        </p>
+                      </div>
                     </div>
                   </div>
-                  <div className="text-center">
-                    <div className="border-t border-border pt-2">
-                      <p className="text-sm text-foreground">Secretaria Acadêmica</p>
-                    </div>
+
+                  <div className="w-full flex justify-between items-center text-xs text-muted-foreground pt-6">
+                    <p>Código de verificação: XXXX-XXXX-XXXX</p>
+                    <p>Data de emissão: DD/MM/AAAA</p>
                   </div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </CardContent>
+        </Card>
         </div>
       </main>
 

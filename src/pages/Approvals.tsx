@@ -129,7 +129,7 @@ const Approvals = () => {
                     <Card className={`${step.color} border-border backdrop-blur-sm`}>
                       <CardHeader className="pb-2">
                         <div className="flex items-center justify-between mb-4">
-                          <div className="bg-white/90 text-slate-800 rounded-full w-10 h-10 flex items-center justify-center font-bold">
+                          <div className="bg-white/70 text-slate-800 rounded-full w-10 h-10 flex items-center justify-center font-bold">
                             {step.step}
                           </div>
                           <step.icon className="h-8 w-8 text-foreground" />
