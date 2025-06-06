@@ -14,58 +14,80 @@ import { useToast } from "@/components/ui/use-toast";
 const ProjetosExtensao = () => {
   const navigate = useNavigate();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [participacoes, setParticipacao] = useState<number[]>([2]); // Projeto 2 já inscrito
+  const [participacoes, setParticipacoes] = useState<number[]>([2]);
   const { toast } = useToast();
 
   const handleParticipacao = (projetoId: number, titulo: string) => {
     if (participacoes.includes(projetoId)) {
-      setParticipacao(participacoes.filter(id => id !== projetoId));
+      setParticipacoes(participacoes.filter(id => id !== projetoId));
       toast({
         title: "Participação cancelada",
         description: `Você cancelou sua participação no projeto de extensão ${titulo}`,
       });
     } else {
-      setParticipacao([...participacoes, projetoId]);
+      setParticipacoes([...participacoes, projetoId]);
       toast({
-        title: "Participação realizada",
+        title: "Participação confirmada",
         description: `Você se inscreveu no projeto de extensão ${titulo}`,
       });
     }
   };
 
-  const projetos = [
+  const projetosExtensaoData = [
     {
       id: 1,
-      titulo: "Inteligência Artificial em Sistemas de Saúde",
-      professor: "Prof. Dr. Carlos Silva",
-      departamento: "Computação",
-      descricao: "Desenvolvimento de algoritmos de IA para diagnóstico médico assistido.",
-      inicio: "31/01/2025",
-      participantes: 1,
-      status: "Ativo",
-      inscrito: false
+      titulo: "Desenvolvimento de App para Acompanhamento de Saúde",
+      coordenador: "Prof. Dra. Camila Soares",
+      area: "Saúde Digital",
+      descricao: "Criação de um aplicativo móvel para auxiliar pacientes no gerenciamento de condições crônicas.",
+      inicio: "01/08/2025",
+      alunosEnvolvidos: 6,
+      status: "Em Andamento",
+      participando: false
     },
     {
       id: 2,
-      titulo: "Sustentabilidade em Materiais de Construção",
-      professor: "Prof. Dra. Ana Santos",
-      departamento: "Engenharia Civil",
-      descricao: "Pesquisa sobre materiais sustentáveis para construção civil.",
-      inicio: "28/02/2025",
-      participantes: 4,
-      status: "Ativo",
-      inscrito: true
+      titulo: "Oficinas de Programação para Jovens da Comunidade",
+      coordenador: "Prof. Dr. Eduardo Lima",
+      area: "Educação Tecnológica",
+      descricao: "Série de workshops práticos sobre lógica de programação e desenvolvimento web básico.",
+      inicio: "10/09/2025",
+      alunosEnvolvidos: 15,
+      status: "Em Andamento",
+      participando: true
     },
     {
       id: 3,
-      titulo: "Biotecnologia Aplicada à Agricultura",
-      professor: "Prof. Dr. João Costa",
-      departamento: "Biotecnologia",
-      descricao: "Desenvolvimento de soluções biotecnológicas para agricultura sustentável.",
-      inicio: "14/02/2025",
-      participantes: 2,
-      status: "Ativo",
-      inscrito: false
+      titulo: "Sistema de Gerenciamento de Resíduos com IoT",
+      coordenador: "Prof. Dra. Mariana Costa",
+      area: "Sustentabilidade e IoT",
+      descricao: "Implementação de uma solução de IoT para monitorar e otimizar a coleta seletiva em áreas urbanas.",
+      inicio: "05/10/2025",
+      alunosEnvolvidos: 9,
+      status: "Aguardando Início",
+      participando: false
+    },
+    {
+      id: 4,
+      titulo: "Cibersegurança para Pequenas Empresas Locais",
+      coordenador: "Prof. Esp. Bruno Martins",
+      area: "Segurança da Informação",
+      descricao: "Consultoria e treinamento em práticas básicas de cibersegurança para empresários e colaboradores.",
+      inicio: "20/11/2025",
+      alunosEnvolvidos: 7,
+      status: "Em Planejamento",
+      participando: false
+    },
+    {
+      id: 5,
+      titulo: "Plataforma Online de Apoio à Leitura Inclusiva",
+      coordenador: "Prof. Ms. Clara Viana",
+      area: "Tecnologia Assistiva",
+      descricao: "Criação de uma plataforma web com recursos para facilitar a leitura para pessoas com dislexia.",
+      inicio: "15/12/2025",
+      alunosEnvolvidos: 10,
+      status: "Em Planejamento",
+      participando: false
     }
   ];
 
@@ -93,7 +115,7 @@ const ProjetosExtensao = () => {
                   Projetos de Extensão
                 </h1>
                 <p className="text-muted-foreground mt-2">
-                  Iniciação científica e desenvolvimento acadêmico
+                  Conectando a universidade com a comunidade através de ações transformadoras em tecnologia.
                 </p>
               </div>
             </div>
@@ -102,7 +124,7 @@ const ProjetosExtensao = () => {
               onClick={() => setIsCreateDialogOpen(true)}
             >
               <Plus className="h-4 w-4 mr-2" />
-              Novo Projeto
+              Novo Projeto de Extensão
             </Button>
           </div>
 
@@ -110,42 +132,50 @@ const ProjetosExtensao = () => {
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input
-                placeholder="Buscar por título, orientador ou área..."
+                placeholder="Buscar por título, coordenador ou área..."
                 className="pl-10"
               />
             </div>
             <Select defaultValue="todas">
               <SelectTrigger className="w-full md:w-48">
-                <SelectValue placeholder="Filtrar por área" />
+                <SelectValue placeholder="Filtrar por área de tecnologia" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="todas">Todas as áreas</SelectItem>
-                <SelectItem value="computacao">Computação</SelectItem>
-                <SelectItem value="engenharia">Engenharia</SelectItem>
-                <SelectItem value="biotecnologia">Biotecnologia</SelectItem>
+                <SelectItem value="saude_digital">Saúde Digital</SelectItem>
+                <SelectItem value="educacao_tecnologica">Educação Tecnológica</SelectItem>
+                <SelectItem value="sustentabilidade_iot">Sustentabilidade e IoT</SelectItem>
+                <SelectItem value="seguranca_informacao">Segurança da Informação</SelectItem>
+                <SelectItem value="tecnologia_assistiva">Tecnologia Assistiva</SelectItem>
+                <SelectItem value="desenvolvimento_web_mobile">Desenvolvimento Web/Mobile</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            {projetos.map((projeto) => (
+            {projetosExtensaoData.map((projeto) => (
               <Card key={projeto.id} className="bg-card border-border">
                 <CardHeader className="pb-4">
                   <div className="flex justify-between items-start">
                     <CardTitle className="text-xl text-foreground mb-2">
                       {projeto.titulo}
                     </CardTitle>
-                    <span className="px-2 py-1 rounded text-xs bg-green-500 text-white">
+                    <span className={`px-2 py-1 rounded text-xs ${
+                        projeto.status === "Em Andamento" ? "bg-blue-600 text-white" :
+                        projeto.status === "Aguardando Início" ? "bg-yellow-600 text-white" :
+                        projeto.status === "Em Planejamento" ? "bg-purple-600 text-white" :
+                        "bg-green-500 text-white"
+                    }`}>
                       {projeto.status}
                     </span>
                   </div>
                   <div className="flex items-center text-sm text-muted-foreground">
                     <Users className="h-4 w-4 mr-2" />
-                    <span>{projeto.professor}</span>
+                    <span>{projeto.coordenador}</span>
                   </div>
                   <div className="flex items-center text-sm text-muted-foreground">
                     <BookOpen className="h-4 w-4 mr-2" />
-                    <span>{projeto.departamento}</span>
+                    <span>{projeto.area}</span>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -158,7 +188,7 @@ const ProjetosExtensao = () => {
                       <Calendar className="h-4 w-4 mr-2" />
                       <span>Início: {projeto.inicio}</span>
                     </div>
-                    <span>{projeto.participantes} participantes</span>
+                    <span>{projeto.alunosEnvolvidos} alunos envolvidos</span>
                   </div>
                   
                   <div className="pt-2">
@@ -170,9 +200,9 @@ const ProjetosExtensao = () => {
                       }`}
                       onClick={() => handleParticipacao(projeto.id, projeto.titulo)}
                     >
-                      {participacoes.includes(projeto.id) 
+                      {participacoes.includes(projeto.id)
                         ? 'Cancelar Participação' 
-                        : 'Inscrever-se'
+                        : 'Participar'
                       }
                     </Button>
                   </div>
