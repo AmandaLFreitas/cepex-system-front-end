@@ -149,18 +149,18 @@ const Users = () => {
             ))}
           </div>
 
-          <Card className="bg-gradient-to-br from-slate-800 to-slate-900 border-border">
+          <Card className="bg-card border-border">
             <CardHeader>
-              <CardTitle className="text-white text-xl">
+              <CardTitle className="text-foreground">
                 Características dos Usuários
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {userCharacteristics.map((char, index) => (
-                  <div key={index} className="text-center">
-                    <h3 className="text-white font-semibold mb-2">{char.title}</h3>
-                    <p className="text-slate-300 text-sm">{char.description}</p>
+                  <div key={index} className="text-center p4 bg-muted rounded-lg">
+                    <h3 className="text-foreground font-semibold mb-2">{char.title}</h3>
+                    <p className="text-muted-foreground text-sm">{char.description}</p>
                   </div>
                 ))}
               </div>

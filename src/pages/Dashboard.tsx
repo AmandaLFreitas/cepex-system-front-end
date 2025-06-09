@@ -57,7 +57,7 @@ const Dashboard = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {modules.map((module, index) => (
-              <Card
+              <Card 
                 key={index}
                 className={`${module.color} border-border cursor-pointer transition-all duration-200 transform hover:scale-105`}
                 onClick={() => navigate(module.path)}
