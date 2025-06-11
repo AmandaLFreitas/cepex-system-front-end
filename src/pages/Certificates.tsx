@@ -15,25 +15,25 @@ const Certificates = () => {
       title: "Geração Automática",
       description: "Certificados gerados automaticamente após conclusão do evento",
       icon: FileText,
-      color: "bg-gradient-to-br from-blue-800/30 to-blue-800/10"
+      color: "bg-gradient-to-br from-blue-500/50 to-blue-600/50"
     },
     {
       title: "Assinaturas Digitais",
       description: "Assinaturas digitais do coordenador e secretaria acadêmica",
       icon: PenTool,
-      color: "bg-gradient-to-br from-green-800/30 to-green-800/10"
+      color: "bg-gradient-to-br from-green-500/50 to-green-600/50"
     },
     {
       title: "Código de Verificação",
       description: "Código único para validação da autenticidade do certificado",
       icon: Lock,
-      color: "bg-gradient-to-br from-[#EC0444]/30 to-[#EC0444]/10"
+      color: "bg-gradient-to-br from-[#EC0444]/50 to-[#EC0444]/50"
     },
     {
       title: "Opção de Impressão",
       description: "Certificados disponíveis em formato digital para impressão",
       icon: Printer,
-      color: "bg-gradient-to-br from-purple-800/30 to-purple-800/10"
+      color: "bg-gradient-to-br from-purple-500/50 to-purple-600/50"
     }
   ];
 
@@ -104,7 +104,7 @@ const Certificates = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-muted-foreground text-xs">
+                  <p className="text-foreground text-xs">
                     {feature.description}
                   </p>
                 </CardContent>

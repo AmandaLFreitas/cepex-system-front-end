@@ -16,7 +16,7 @@ const Approvals = () => {
       title: "Criação do Evento",
       role: "Professor",
       description: "Professor propõe um evento com todos os detalhes necessários",
-      color: "bg-gradient-to-br from-blue-500/20 to-blue-600/30",
+      color: "bg-gradient-to-br from-blue-500/50 to-blue-600/50",
       icon: User
     },
     {
@@ -24,7 +24,7 @@ const Approvals = () => {
       title: "Revisão Inicial",
       role: "Coordenador",
       description: "Coordenador analisa viabilidade acadêmica e adequação",
-      color: "bg-gradient-to-br from-purple-500/20 to-purple-600/30",
+      color: "bg-gradient-to-br from-purple-500/50 to-purple-600/50",
       icon: Users
     },
     {
@@ -32,7 +32,7 @@ const Approvals = () => {
       title: "Aprovação Final",
       role: "Secretaria",
       description: "Secretaria valida e confirma disponibilidade de recursos",
-      color: "bg-gradient-to-br from-green-500/20 to-green-600/30",
+      color: "bg-gradient-to-br from-green-500/50 to-green-600/50",
       icon: Shield
     },
     {
@@ -40,7 +40,7 @@ const Approvals = () => {
       title: "Publicação",
       role: "Sistema",
       description: "Evento é publicado e disponibilizado para inscrições",
-      color: "bg-gradient-to-br from-[#EC0444]/20 to-[#EC0444]/30",
+      color: "bg-gradient-to-br from-[#EC0444]/50 to-[#EC0444]/50",
       icon: Globe
     }
   ];
@@ -139,8 +139,8 @@ const Approvals = () => {
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <p className="text-sm text-muted-foreground mb-2 font-semibold">{step.role}</p>
-                        <p className="text-sm text-muted-foreground">{step.description}</p>
+                        <p className="text-sm text-foreground mb-2 font-semibold">{step.role}</p>
+                        <p className="text-sm text-foreground">{step.description}</p>
                       </CardContent>
                     </Card>
                     

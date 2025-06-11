@@ -36,7 +36,7 @@ const Activities = () => {
       title: "Monitorias",
       description: "Apoio acadêmico em disciplinas específicas com estudantes monitores",
       icon: Users,
-      color: "bg-gradient-to-br from-[#EC0444]/30 to-[#EC0444]/10",
+      color: "bg-gradient-to-br from-[#EC0444]/50 to-[#EC0444]/50",
       detailText: "Estudantes monitores auxiliam colegas em disciplinas específicas",
       route: "/monitorias"
     },
@@ -45,7 +45,7 @@ const Activities = () => {
       title: "Projetos de Pesquisa",
       description: "Iniciação científica e projetos de pesquisa acadêmica",
       icon: BookOpen,
-      color: "bg-gradient-to-br from-blue-800/40 to-blue-800/10",
+      color: "bg-gradient-to-br from-blue-500/50 to-blue-600/50",
       detailText: "Projetos de iniciação científica e desenvolvimento acadêmico",
       route: "/projetos-pesquisa"
     },
@@ -54,7 +54,7 @@ const Activities = () => {
       title: "Projetos de Extensão",
       description: "Projetos que conectam a universidade à comunidade",
       icon: Heart,
-      color: "bg-gradient-to-br from-green-800/40 to-green-800/10",
+      color: "bg-gradient-to-br from-green-500/50 to-green-600/50",
       detailText: "Projetos que conectam a universidade com a comunidade",
       route: "/projetos-extensao"
     }
@@ -104,7 +104,7 @@ const Activities = () => {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <p className="text-muted-foreground text-center">
+                  <p className="text-foreground text-center">
                     {type.description}
                   </p>
                   <div className="flex flex-col gap-2">

@@ -15,8 +15,8 @@ const Users = () => {
       title: "Alunos",
       description: "Estudantes matriculados em cursos da instituição",
       icon: GraduationCap,
-      color: "bg-gradient-to-br from-card to-card/80",
-      textColor: "text-foreground",
+      color: "bg-gradient-to-br from-slate-600 to-slate-700",
+      textColor: "text-white",
       count: "1,234",
       permissions: [
         "Visualizar Atividades",
@@ -28,7 +28,7 @@ const Users = () => {
       title: "Professores",
       description: "Docentes responsáveis por disciplinas e projetos",
       icon: UserCheck,
-      color: "bg-gradient-to-br from-[#EC0444]/60 to-[#EC0444]/30",
+      color: "bg-gradient-to-br from-[#EC0444] to-[#EC0444]/60",
       textColor: "text-white",
       count: "156",
       permissions: [
@@ -41,8 +41,8 @@ const Users = () => {
       title: "Coordenadores",
       description: "Responsáveis por coordenar cursos e departamentos",
       icon: UsersIcon,
-      color: "bg-gradient-to-br from-card to-card/80",
-      textColor: "text-foreground",
+      color: "bg-gradient-to-br from-slate-600 to-slate-700",
+      textColor: "text-white",
       count: "43",
       permissions: [
         "Revisar Atividades",
@@ -54,7 +54,7 @@ const Users = () => {
       title: "Secretarias",
       description: "Equipe administrativa de suporte institucional",
       icon: Shield,
-      color: "bg-gradient-to-br from-[#EC0444]/60 to-[#EC0444]/30",
+      color: "bg-gradient-to-br from-[#EC0444] to-[#EC0444]/60",
       textColor: "text-white",
       count: "28",
       permissions: [
