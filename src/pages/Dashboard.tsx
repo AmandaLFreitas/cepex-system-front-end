@@ -1,7 +1,6 @@
-
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
-import FloatingRating from "@/components/FloatingRating";
+import Header from "@/components/ui/modal/Header";
+import Footer from "@/components/ui/modal/Footer";
+import FloatingRating from "@/components/ui/modal/FloatingRating";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, BookOpen, CheckCircle, Award } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -15,29 +14,29 @@ const Dashboard = () => {
       description: "Gerencie estudantes, professores e coordenadores",
       icon: Users,
       path: "/usuarios",
-      color: "bg-gradient-to-br from-[#EC0444] to-[#EC0444]/60"
+      color: "bg-gradient-to-br from-[#EC0444] to-[#EC0444]/60",
     },
     {
       title: "Atividades",
       description: "Monitorias, pesquisa e projetos de extensão",
       icon: BookOpen,
       path: "/atividades",
-      color: "bg-gradient-to-br from-slate-600 to-slate-700"
+      color: "bg-gradient-to-br from-slate-600 to-slate-700",
     },
     {
       title: "Aprovações",
       description: "Fluxo de revisão e aprovação de atividades",
       icon: CheckCircle,
       path: "/aprovacoes",
-      color: "bg-gradient-to-br from-blue-600 to-blue-700"
+      color: "bg-gradient-to-br from-blue-600 to-blue-700",
     },
     {
       title: "Certificados",
       description: "Geração e validação de certificados",
       icon: Award,
       path: "/certificados",
-      color: "bg-gradient-to-br from-green-600 to-green-700"
-    }
+      color: "bg-gradient-to-br from-green-600 to-green-700",
+    },
   ];
 
   return (
@@ -57,7 +56,7 @@ const Dashboard = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {modules.map((module, index) => (
-              <Card 
+              <Card
                 key={index}
                 className={`${module.color} border-border cursor-pointer transition-all duration-200 transform hover:scale-105`}
                 onClick={() => navigate(module.path)}
@@ -71,9 +70,7 @@ const Dashboard = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-slate-200">
-                    {module.description}
-                  </p>
+                  <p className="text-slate-200">{module.description}</p>
                 </CardContent>
               </Card>
             ))}
@@ -81,25 +78,35 @@ const Dashboard = () => {
 
           <Card className="bg-card border-border mt-8">
             <CardHeader>
-              <CardTitle className="text-foreground">Estatísticas Gerais</CardTitle>
+              <CardTitle className="text-foreground">
+                Estatísticas Gerais
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <div className="text-center">
                   <div className="text-3xl font-bold text-[#EC0444]">1,234</div>
-                  <div className="text-sm text-muted-foreground">Usuários Ativos</div>
+                  <div className="text-sm text-muted-foreground">
+                    Usuários Ativos
+                  </div>
                 </div>
                 <div className="text-center">
                   <div className="text-3xl font-bold text-[#EC0444]">89</div>
-                  <div className="text-sm text-muted-foreground">Atividades Ativas</div>
+                  <div className="text-sm text-muted-foreground">
+                    Atividades Ativas
+                  </div>
                 </div>
                 <div className="text-center">
                   <div className="text-3xl font-bold text-[#EC0444]">15</div>
-                  <div className="text-sm text-muted-foreground">Aprovações Pendentes</div>
+                  <div className="text-sm text-muted-foreground">
+                    Aprovações Pendentes
+                  </div>
                 </div>
                 <div className="text-center">
                   <div className="text-3xl font-bold text-[#EC0444]">456</div>
-                  <div className="text-sm text-muted-foreground">Certificados Emitidos</div>
+                  <div className="text-sm text-muted-foreground">
+                    Certificados Emitidos
+                  </div>
                 </div>
               </div>
             </CardContent>

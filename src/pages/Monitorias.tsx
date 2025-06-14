@@ -1,25 +1,45 @@
 import React, { useState } from "react";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
-import FloatingRating from "@/components/FloatingRating";
+import Header from "@/components/ui/modal/Header";
+import Footer from "@/components/ui/modal/Footer";
+import FloatingRating from "@/components/ui/modal/FloatingRating";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Search, Plus, Users, Calendar, MapPin, Clock } from "lucide-react";
+import {
+  ArrowLeft,
+  Search,
+  Plus,
+  Users,
+  Calendar,
+  MapPin,
+  Clock,
+  Eye,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import CreateMonitoriaDialog from "@/components/CreateMonitoriaDialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import CreateMonitoriaDialog from "@/components/ui/modal/CreateMonitoriaDialog";
 import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Monitorias = () => {
   const navigate = useNavigate();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [inscricoes, setInscricoes] = useState<number[]>([]);
   const { toast } = useToast();
+  const { hasRole } = useAuth();
+
+  const isStudent = hasRole(["STUDENT"]);
+  const canCreate = hasRole(["ADMIN", "PROFESSOR"]);
 
   const handleInscricao = (monitoriaId: number, disciplina: string) => {
     if (inscricoes.includes(monitoriaId)) {
-      setInscricoes(inscricoes.filter(id => id !== monitoriaId));
+      setInscricoes(inscricoes.filter((id) => id !== monitoriaId));
       toast({
         title: "Candidatura cancelada",
         description: `Você cancelou sua candidatura para monitoria de ${disciplina}`,
@@ -33,6 +53,10 @@ const Monitorias = () => {
     }
   };
 
+  const handleViewDetails = (monitoriaId: number) => {
+    navigate(`/monitorias/${monitoriaId}`);
+  };
+
   const monitorias = [
     {
       id: 1,
@@ -43,7 +67,7 @@ const Monitorias = () => {
       local: "Sala 205",
       vagasMonitor: "1/2",
       candidatos: 2,
-      status: "Aberta"
+      status: "Aberta",
     },
     {
       id: 2,
@@ -54,7 +78,7 @@ const Monitorias = () => {
       local: "Lab. Física",
       vagasMonitor: "2/2",
       candidatos: 0,
-      status: "Completa"
+      status: "Completa",
     },
     {
       id: 3,
@@ -65,20 +89,20 @@ const Monitorias = () => {
       local: "Lab. Informática",
       vagasMonitor: "1/2",
       candidatos: 1,
-      status: "Aberta"
-    }
+      status: "Aberta",
+    },
   ];
 
   const stats = [
     { number: 2, label: "Monitorias Abertas", color: "text-blue-500" },
     { number: 4, label: "Monitores Ativos", color: "text-green-500" },
-    { number: 3, label: "Candidatos Pendentes", color: "text-purple-500" }
+    { number: 3, label: "Candidatos Pendentes", color: "text-purple-500" },
   ];
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Header />
-      
+
       <main className="flex-1 p-6">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-between mb-6">
@@ -103,13 +127,15 @@ const Monitorias = () => {
                 </p>
               </div>
             </div>
-            <Button 
-              className="bg-[#EC0444] hover:bg-[#EC0444]/90"
-              onClick={() => setIsCreateDialogOpen(true)}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Nova Monitoria
-            </Button>
+            {canCreate && (
+              <Button
+                className="bg-[#EC0444] hover:bg-[#EC0444]/90"
+                onClick={() => setIsCreateDialogOpen(true)}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Nova Monitoria
+              </Button>
+            )}
           </div>
 
           <div className="flex flex-col md:flex-row gap-4 mb-6">
@@ -141,11 +167,15 @@ const Monitorias = () => {
                     <CardTitle className="text-xl text-foreground">
                       {monitoria.disciplina}
                     </CardTitle>
-                    <span className={`px-2 py-1 rounded text-xs ${
-                      monitoria.status === 'Aberta' ? 'bg-green-500 text-white' : 
-                      monitoria.status === 'Completa' ? 'bg-blue-500 text-white' : 
-                      'bg-gray-500 text-white'
-                    }`}>
+                    <span
+                      className={`px-2 py-1 rounded text-xs ${
+                        monitoria.status === "Aberta"
+                          ? "bg-green-500 text-white"
+                          : monitoria.status === "Completa"
+                          ? "bg-blue-500 text-white"
+                          : "bg-gray-500 text-white"
+                      }`}
+                    >
                       {monitoria.status}
                     </span>
                   </div>
@@ -153,47 +183,61 @@ const Monitorias = () => {
                 <CardContent className="space-y-3">
                   <div className="flex items-center text-sm text-muted-foreground">
                     <Users className="h-4 w-4 mr-2" />
-                    <span><strong>Professor:</strong> {monitoria.professor}</span>
+                    <span>
+                      <strong>Professor:</strong> {monitoria.professor}
+                    </span>
                   </div>
                   <div className="flex items-center text-sm text-muted-foreground">
                     <Users className="h-4 w-4 mr-2" />
-                    <span><strong>Monitores:</strong> {monitoria.monitores}</span>
+                    <span>
+                      <strong>Monitores:</strong> {monitoria.monitores}
+                    </span>
                   </div>
                   <div className="flex items-center text-sm text-muted-foreground">
                     <Clock className="h-4 w-4 mr-2" />
-                    <span><strong>Horário:</strong> {monitoria.horario}</span>
+                    <span>
+                      <strong>Horário:</strong> {monitoria.horario}
+                    </span>
                   </div>
                   <div className="flex items-center text-sm text-muted-foreground">
                     <MapPin className="h-4 w-4 mr-2" />
-                    <span><strong>Local:</strong> {monitoria.local}</span>
+                    <span>
+                      <strong>Local:</strong> {monitoria.local}
+                    </span>
                   </div>
                   <div className="text-sm text-muted-foreground">
-                    <strong>Vagas para Monitor:</strong> {monitoria.vagasMonitor}
+                    <strong>Vagas para Monitor:</strong>{" "}
+                    {monitoria.vagasMonitor}
                   </div>
                   <div className="text-sm text-muted-foreground">
                     <strong>Candidatos:</strong> {monitoria.candidatos}
                   </div>
-                  
+
                   <div className="pt-4 space-y-2">
-                    {monitoria.status === 'Aberta' ? (
-                      <Button 
+                    {isStudent && monitoria.status === "Aberta" ? (
+                      <Button
                         className={`w-full ${
-                          inscricoes.includes(monitoria.id) 
-                            ? 'bg-red-600 hover:bg-red-700' 
-                            : 'bg-[#EC0444] hover:bg-[#EC0444]/90'
+                          inscricoes.includes(monitoria.id)
+                            ? "bg-red-600 hover:bg-red-700"
+                            : "bg-[#EC0444] hover:bg-[#EC0444]/90"
                         }`}
-                        onClick={() => handleInscricao(monitoria.id, monitoria.disciplina)}
-                      >
-                        {inscricoes.includes(monitoria.id) 
-                          ? 'Cancelar Candidatura' 
-                          : 'Candidatar-se a Monitor'
+                        onClick={() =>
+                          handleInscricao(monitoria.id, monitoria.disciplina)
                         }
+                      >
+                        {inscricoes.includes(monitoria.id)
+                          ? "Cancelar Candidatura"
+                          : "Candidatar-se a Monitor"}
                       </Button>
-                    ) : (
-                      <div className="text-center py-3 bg-muted rounded">
-                        <span className="text-sm text-muted-foreground">Vagas Preenchidas</span>
-                      </div>
-                    )}
+                    ) : canCreate ? (
+                      <Button
+                        className="w-full bg-[#EC0444] hover:bg-[#EC0444]/90"
+                        onClick={() => handleViewDetails(monitoria.id)}
+                      >
+                        <Eye className="h-4 w-4 mr-2" />
+                        Ver Mais
+                      </Button>
+                    ) : null}
                   </div>
                 </CardContent>
               </Card>
@@ -205,8 +249,12 @@ const Monitorias = () => {
               <Card key={index} className="bg-card border-border text-center">
                 <CardContent className="p-6">
                   <Users className={`h-12 w-12 mx-auto mb-4 ${stat.color}`} />
-                  <div className={`text-4xl font-bold ${stat.color}`}>{stat.number}</div>
-                  <div className="text-sm text-muted-foreground mt-2">{stat.label}</div>
+                  <div className={`text-4xl font-bold ${stat.color}`}>
+                    {stat.number}
+                  </div>
+                  <div className="text-sm text-muted-foreground mt-2">
+                    {stat.label}
+                  </div>
                 </CardContent>
               </Card>
             ))}
@@ -216,10 +264,12 @@ const Monitorias = () => {
 
       <Footer />
       <FloatingRating />
-      <CreateMonitoriaDialog 
-        open={isCreateDialogOpen} 
-        onOpenChange={setIsCreateDialogOpen} 
-      />
+      {canCreate && (
+        <CreateMonitoriaDialog
+          open={isCreateDialogOpen}
+          onOpenChange={setIsCreateDialogOpen}
+        />
+      )}
     </div>
   );
 };

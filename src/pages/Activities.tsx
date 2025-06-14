@@ -1,8 +1,7 @@
-
 import React, { useState } from "react";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
-import FloatingRating from "@/components/FloatingRating";
+import Header from "@/components/ui/modal/Header";
+import Footer from "@/components/ui/modal/Footer";
+import FloatingRating from "@/components/ui/modal/FloatingRating";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Users, BookOpen, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -16,7 +15,7 @@ const Activities = () => {
 
   const handleInscricao = (tipo: string) => {
     if (inscricoes.includes(tipo)) {
-      setInscricoes(inscricoes.filter(item => item !== tipo));
+      setInscricoes(inscricoes.filter((item) => item !== tipo));
       toast({
         title: "Desinscrição realizada",
         description: `Você se desinscreveu de ${tipo}`,
@@ -34,11 +33,13 @@ const Activities = () => {
     {
       id: "monitorias",
       title: "Monitorias",
-      description: "Apoio acadêmico em disciplinas específicas com estudantes monitores",
+      description:
+        "Apoio acadêmico em disciplinas específicas com estudantes monitores",
       icon: Users,
       color: "bg-gradient-to-br from-[#EC0444]/50 to-[#EC0444]/50",
-      detailText: "Estudantes monitores auxiliam colegas em disciplinas específicas",
-      route: "/monitorias"
+      detailText:
+        "Estudantes monitores auxiliam colegas em disciplinas específicas",
+      route: "/monitorias",
     },
     {
       id: "pesquisa",
@@ -46,8 +47,9 @@ const Activities = () => {
       description: "Iniciação científica e projetos de pesquisa acadêmica",
       icon: BookOpen,
       color: "bg-gradient-to-br from-blue-500/50 to-blue-600/50",
-      detailText: "Projetos de iniciação científica e desenvolvimento acadêmico",
-      route: "/projetos-pesquisa"
+      detailText:
+        "Projetos de iniciação científica e desenvolvimento acadêmico",
+      route: "/projetos-pesquisa",
     },
     {
       id: "extensao",
@@ -56,14 +58,14 @@ const Activities = () => {
       icon: Heart,
       color: "bg-gradient-to-br from-green-500/50 to-green-600/50",
       detailText: "Projetos que conectam a universidade com a comunidade",
-      route: "/projetos-extensao"
-    }
+      route: "/projetos-extensao",
+    },
   ];
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Header />
-      
+
       <main className="flex-1 p-6">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center mb-6">
@@ -90,8 +92,8 @@ const Activities = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             {activityTypes.map((type, index) => (
-              <Card 
-              onClick={() => navigate(type.route)}
+              <Card
+                onClick={() => navigate(type.route)}
                 key={index}
                 className={`${type.color} border-border cursor-pointer transition-all duration-200 transform hover:scale-105`}
               >
@@ -108,7 +110,7 @@ const Activities = () => {
                     {type.description}
                   </p>
                   <div className="flex flex-col gap-2">
-                    <Button 
+                    <Button
                       onClick={() => navigate(type.route)}
                       className="w-full bg-[#EC0444] hover:bg-[#EC0444]/90"
                     >
@@ -132,7 +134,9 @@ const Activities = () => {
                   <div key={index} className="bg-muted p-6 rounded-lg">
                     <div className="flex items-center mb-4">
                       <info.icon className="h-8 w-8 text-[#EC0444] mr-3" />
-                      <h3 className="text-foreground font-semibold text-lg">{info.title}</h3>
+                      <h3 className="text-foreground font-semibold text-lg">
+                        {info.title}
+                      </h3>
                     </div>
                     <p className="text-muted-foreground">{info.detailText}</p>
                   </div>
