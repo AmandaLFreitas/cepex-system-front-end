@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Header from "@/components/ui/modal/Header";
 import Footer from "@/components/ui/modal/Footer";
 import FloatingRating from "@/components/ui/modal/FloatingRating";
@@ -26,78 +26,121 @@ import {
 import CreateMonitoriaDialog from "@/components/ui/modal/CreateMonitoriaDialog";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { api } from "@/lib/api";
+
+interface Monitoria {
+  id: string;
+  title: string;
+  description: string;
+  remote: boolean;
+  location: string;
+  vacancies: number;
+  workload: number;
+  inicialDate: string;
+  finalDate: string;
+  inicialIngressDate: string;
+  finalIngressDate: string;
+  selectionType: string;
+  selectionDate: string;
+  selectionTime: string;
+  divulgationDate: string;
+  eventStatus: string;
+  subject?: {
+    id: string;
+    name: string;
+  };
+  professor?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+  };
+}
+
+interface MonitoriaStatistics {
+  monitoriasAbertas: number;
+  monitoresAtivos: number;
+  candidatosPendentes: number;
+}
 
 const Monitorias = () => {
   const navigate = useNavigate();
+  const [monitorias, setMonitorias] = useState<Monitoria[]>([]);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [inscricoes, setInscricoes] = useState<number[]>([]);
+  const [inscricoes, setInscricoes] = useState<string[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("todos");
+  const [statistics, setStatistics] = useState<MonitoriaStatistics>({
+    monitoriasAbertas: 0,
+    monitoresAtivos: 0,
+    candidatosPendentes: 0,
+  });
   const { toast } = useToast();
   const { hasRole } = useAuth();
 
   const isStudent = hasRole(["STUDENT"]);
   const canCreate = hasRole(["ADMIN", "PROFESSOR"]);
 
-  const handleInscricao = (monitoriaId: number, disciplina: string) => {
-    if (inscricoes.includes(monitoriaId)) {
-      setInscricoes(inscricoes.filter((id) => id !== monitoriaId));
+  const handleInscricao = async (monitoriaId: string, title: string) => {
+    try {
+      if (inscricoes.includes(monitoriaId)) {
+        await api.delete(`/monitorias/${monitoriaId}/candidatar`);
+        setInscricoes(inscricoes.filter((id) => id !== monitoriaId));
+        toast({
+          title: "Candidatura cancelada",
+          description: `Você cancelou sua candidatura para monitoria de ${title}`,
+        });
+      } else {
+        await api.post(`/monitorias/${monitoriaId}/candidatar`);
+        setInscricoes([...inscricoes, monitoriaId]);
+        toast({
+          title: "Candidatura realizada",
+          description: `Você se candidatou para monitoria de ${title}`,
+        });
+      }
+    } catch (error) {
       toast({
-        title: "Candidatura cancelada",
-        description: `Você cancelou sua candidatura para monitoria de ${disciplina}`,
-      });
-    } else {
-      setInscricoes([...inscricoes, monitoriaId]);
-      toast({
-        title: "Candidatura realizada",
-        description: `Você se candidatou para monitoria de ${disciplina}`,
+        title: "Erro",
+        description: "Ocorreu um erro ao processar sua candidatura.",
+        variant: "destructive",
       });
     }
   };
 
-  const handleViewDetails = (monitoriaId: number) => {
+  const handleViewDetails = (monitoriaId: string) => {
     navigate(`/monitorias/${monitoriaId}`);
   };
 
-  const monitorias = [
-    {
-      id: 1,
-      disciplina: "Cálculo I",
-      professor: "Prof. João Silva",
-      monitores: "Maria Santos",
-      horario: "Segunda e Quarta - 14:00 às 16:00",
-      local: "Sala 205",
-      vagasMonitor: "1/2",
-      candidatos: 2,
-      status: "Aberta",
-    },
-    {
-      id: 2,
-      disciplina: "Física Geral",
-      professor: "Prof. Ana Costa",
-      monitores: "Pedro Oliveira, Julia Santos",
-      horario: "Terça e Quinta - 16:00 às 18:00",
-      local: "Lab. Física",
-      vagasMonitor: "2/2",
-      candidatos: 0,
-      status: "Completa",
-    },
-    {
-      id: 3,
-      disciplina: "Programação",
-      professor: "Prof. Carlos Lima",
-      monitores: "Julia Ferreira",
-      horario: "Sexta - 14:00 às 17:00",
-      local: "Lab. Informática",
-      vagasMonitor: "1/2",
-      candidatos: 1,
-      status: "Aberta",
-    },
-  ];
+  useEffect(() => {
+    const fetchMonitorias = async () => {
+      try {
+        const response = await api.get("/monitorias", {
+          params: {
+            search: searchTerm || undefined,
+            status: statusFilter !== "todos" ? statusFilter : undefined,
+          },
+        });
+        setMonitorias(response.data);
+      } catch (error) {
+        toast({
+          title: "Erro",
+          description: "Não foi possível carregar as monitorias.",
+          variant: "destructive",
+        });
+      }
+    };
 
-  const stats = [
-    { number: 2, label: "Monitorias Abertas", color: "text-blue-500" },
-    { number: 4, label: "Monitores Ativos", color: "text-green-500" },
-    { number: 3, label: "Candidatos Pendentes", color: "text-purple-500" },
-  ];
+    const fetchStatistics = async () => {
+      try {
+        const response = await api.get("/monitorias/statistics");
+        setStatistics(response.data);
+      } catch (error) {
+        console.error("Erro ao carregar estatísticas:", error);
+      }
+    };
+
+    fetchMonitorias();
+    fetchStatistics();
+  }, [searchTerm, statusFilter, toast]);
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -144,17 +187,19 @@ const Monitorias = () => {
               <Input
                 placeholder="Buscar por disciplina, professor ou monitor..."
                 className="pl-10"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <Select defaultValue="todos">
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-full md:w-48">
                 <SelectValue placeholder="Filtrar por status" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="todos">Todos os status</SelectItem>
-                <SelectItem value="aberta">Aberta</SelectItem>
-                <SelectItem value="completa">Completa</SelectItem>
-                <SelectItem value="encerrada">Encerrada</SelectItem>
+                <SelectItem value="ABERTO">Aberta</SelectItem>
+                <SelectItem value="COMPLETO">Completa</SelectItem>
+                <SelectItem value="ENCERRADO">Encerrada</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -165,18 +210,18 @@ const Monitorias = () => {
                 <CardHeader className="pb-4">
                   <div className="flex justify-between items-start">
                     <CardTitle className="text-xl text-foreground">
-                      {monitoria.disciplina}
+                      {monitoria.title}
                     </CardTitle>
                     <span
                       className={`px-2 py-1 rounded text-xs ${
-                        monitoria.status === "Aberta"
+                        monitoria.eventStatus === "ABERTO"
                           ? "bg-green-500 text-white"
-                          : monitoria.status === "Completa"
+                          : monitoria.eventStatus === "COMPLETO"
                           ? "bg-blue-500 text-white"
                           : "bg-gray-500 text-white"
                       }`}
                     >
-                      {monitoria.status}
+                      {monitoria.eventStatus}
                     </span>
                   </div>
                 </CardHeader>
@@ -184,37 +229,40 @@ const Monitorias = () => {
                   <div className="flex items-center text-sm text-muted-foreground">
                     <Users className="h-4 w-4 mr-2" />
                     <span>
-                      <strong>Professor:</strong> {monitoria.professor}
+                      <strong>Professor:</strong>{" "}
+                      {monitoria.professor
+                        ? `${monitoria.professor.firstName} ${monitoria.professor.lastName}`
+                        : "Não definido"}
                     </span>
                   </div>
                   <div className="flex items-center text-sm text-muted-foreground">
-                    <Users className="h-4 w-4 mr-2" />
+                    <Calendar className="h-4 w-4 mr-2" />
                     <span>
-                      <strong>Monitores:</strong> {monitoria.monitores}
+                      <strong>Disciplina:</strong>{" "}
+                      {monitoria.subject
+                        ? monitoria.subject.name
+                        : "Não definida"}
                     </span>
                   </div>
                   <div className="flex items-center text-sm text-muted-foreground">
                     <Clock className="h-4 w-4 mr-2" />
                     <span>
-                      <strong>Horário:</strong> {monitoria.horario}
+                      <strong>Carga Horária:</strong> {monitoria.workload}h
                     </span>
                   </div>
                   <div className="flex items-center text-sm text-muted-foreground">
                     <MapPin className="h-4 w-4 mr-2" />
                     <span>
-                      <strong>Local:</strong> {monitoria.local}
+                      <strong>Local:</strong>{" "}
+                      {monitoria.remote ? "Remoto" : monitoria.location}
                     </span>
                   </div>
                   <div className="text-sm text-muted-foreground">
-                    <strong>Vagas para Monitor:</strong>{" "}
-                    {monitoria.vagasMonitor}
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    <strong>Candidatos:</strong> {monitoria.candidatos}
+                    <strong>Vagas:</strong> {monitoria.vacancies}
                   </div>
 
                   <div className="pt-4 space-y-2">
-                    {isStudent && monitoria.status === "Aberta" ? (
+                    {isStudent && monitoria.eventStatus === "ABERTO" ? (
                       <Button
                         className={`w-full ${
                           inscricoes.includes(monitoria.id)
@@ -222,7 +270,7 @@ const Monitorias = () => {
                             : "bg-[#EC0444] hover:bg-[#EC0444]/90"
                         }`}
                         onClick={() =>
-                          handleInscricao(monitoria.id, monitoria.disciplina)
+                          handleInscricao(monitoria.id, monitoria.title)
                         }
                       >
                         {inscricoes.includes(monitoria.id)
@@ -245,19 +293,39 @@ const Monitorias = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {stats.map((stat, index) => (
-              <Card key={index} className="bg-card border-border text-center">
-                <CardContent className="p-6">
-                  <Users className={`h-12 w-12 mx-auto mb-4 ${stat.color}`} />
-                  <div className={`text-4xl font-bold ${stat.color}`}>
-                    {stat.number}
-                  </div>
-                  <div className="text-sm text-muted-foreground mt-2">
-                    {stat.label}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+            <Card className="bg-card border-border text-center">
+              <CardContent className="p-6">
+                <Users className="h-12 w-12 mx-auto mb-4 text-blue-500" />
+                <div className="text-4xl font-bold text-blue-500">
+                  {statistics.monitoriasAbertas}
+                </div>
+                <div className="text-sm text-muted-foreground mt-2">
+                  Monitorias Abertas
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="bg-card border-border text-center">
+              <CardContent className="p-6">
+                <Users className="h-12 w-12 mx-auto mb-4 text-green-500" />
+                <div className="text-4xl font-bold text-green-500">
+                  {statistics.monitoresAtivos}
+                </div>
+                <div className="text-sm text-muted-foreground mt-2">
+                  Monitores Ativos
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="bg-card border-border text-center">
+              <CardContent className="p-6">
+                <Users className="h-12 w-12 mx-auto mb-4 text-purple-500" />
+                <div className="text-4xl font-bold text-purple-500">
+                  {statistics.candidatosPendentes}
+                </div>
+                <div className="text-sm text-muted-foreground mt-2">
+                  Candidatos Pendentes
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </main>

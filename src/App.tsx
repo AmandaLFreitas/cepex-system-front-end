@@ -12,6 +12,7 @@ import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
 import Dashboard from "./pages/Dashboard";
 import Users from "./pages/Users";
+import RegisterUser from "./pages/RegisterUser";
 import Activities from "./pages/Activities";
 import Monitorias from "./pages/Monitorias";
 import ProjetosPesquisa from "./pages/ProjetosPesquisa";
@@ -33,7 +34,7 @@ function PublicRoute({ children }: { children: React.ReactNode }) {
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="dark" storageKey="cepex-ui-theme">
+      <ThemeProvider defaultTheme="light" storageKey="cepex-ui-theme">
         <TooltipProvider>
           <Toaster />
           <Sonner />
@@ -90,6 +91,10 @@ const App = () => {
                   <Route element={<ProtectedRoute allowedRoles={["ADMIN"]} />}>
                     <Route element={<MainLayout />}>
                       <Route path="/usuarios" element={<Users />} />
+                      <Route
+                        path="/usuarios/cadastrar"
+                        element={<RegisterUser />}
+                      />
                     </Route>
                   </Route>
 

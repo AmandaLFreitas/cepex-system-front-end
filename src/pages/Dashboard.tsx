@@ -4,9 +4,13 @@ import FloatingRating from "@/components/ui/modal/FloatingRating";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, BookOpen, CheckCircle, Award } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const isStudent = user?.role === "STUDENT";
+  const isProfessor = user?.role === "PROFESSOR";
 
   const modules = [
     {
@@ -15,6 +19,8 @@ const Dashboard = () => {
       icon: Users,
       path: "/usuarios",
       color: "bg-gradient-to-br from-[#EC0444] to-[#EC0444]/60",
+      showForStudent: false,
+      showForProfessor: false,
     },
     {
       title: "Atividades",
@@ -22,6 +28,7 @@ const Dashboard = () => {
       icon: BookOpen,
       path: "/atividades",
       color: "bg-gradient-to-br from-slate-600 to-slate-700",
+      showForStudent: true,
     },
     {
       title: "Aprovações",
@@ -29,6 +36,7 @@ const Dashboard = () => {
       icon: CheckCircle,
       path: "/aprovacoes",
       color: "bg-gradient-to-br from-blue-600 to-blue-700",
+      showForStudent: true,
     },
     {
       title: "Certificados",
@@ -36,8 +44,15 @@ const Dashboard = () => {
       icon: Award,
       path: "/certificados",
       color: "bg-gradient-to-br from-green-600 to-green-700",
+      showForStudent: true,
     },
   ];
+
+  const filteredModules = modules.filter(
+    (module) =>
+      (!isStudent && module.showForStudent) ||
+      (!isProfessor && module.showForProfessor)
+  );
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -55,7 +70,7 @@ const Dashboard = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {modules.map((module, index) => (
+            {filteredModules.map((module, index) => (
               <Card
                 key={index}
                 className={`${module.color} border-border cursor-pointer transition-all duration-200 transform hover:scale-105`}

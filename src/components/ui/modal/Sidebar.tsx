@@ -79,24 +79,18 @@ export function Sidebar({ className }: SidebarProps) {
   ];
 
   const UserMenu = () => (
-    <div className="border-t p-4 flex flex-col gap-2">
+    <div className="border-t p-4 flex flex-col items-center gap-2">
       <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
         <User className="h-4 w-4" />
-        <span className="truncate">{user?.login}</span>
+        <span className="truncate text-start font-bold">{user?.login}</span>
       </div>
       <Button
         variant="ghost"
-        className="justify-start w-full"
-        onClick={() => navigate("/perfil")}
-      >
-        <User className="h-4 w-4 mr-2" /> Meu Perfil
-      </Button>
-      <Button
-        variant="ghost"
-        className="justify-start w-full"
+        className="justify-center w-full text-start border-t"
         onClick={handleLogout}
       >
-        <LogOut className="h-4 w-4 mr-2" /> Sair
+        <LogOut className="h-4 w-4 mr-2" />
+        <span className="text-sm">Sair</span>
       </Button>
     </div>
   );
