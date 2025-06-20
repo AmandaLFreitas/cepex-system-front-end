@@ -64,6 +64,7 @@ interface MonitoriaStatistics {
 
 const Monitorias = () => {
   const navigate = useNavigate();
+  const [monitoria, setMonitoria] = useState<Monitoria | null>(null);
   const [monitorias, setMonitorias] = useState<Monitoria[]>([]);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [inscricoes, setInscricoes] = useState<string[]>([]);
@@ -110,34 +111,34 @@ const Monitorias = () => {
     navigate(`/monitorias/${monitoriaId}`);
   };
 
+  const fetchMonitorias = async () => {
+    try {
+      const response = await api.get("/monitorias", {
+        params: {
+          search: searchTerm || undefined,
+          status: statusFilter !== "todos" ? statusFilter : undefined,
+        },
+      });
+      setMonitorias(response.data);
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível carregar as monitorias.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const fetchStatistics = async () => {
+    try {
+      const response = await api.get("/monitorias/statistics");
+      setStatistics(response.data);
+    } catch (error) {
+      console.error("Erro ao carregar estatísticas:", error);
+    }
+  };
+
   useEffect(() => {
-    const fetchMonitorias = async () => {
-      try {
-        const response = await api.get("/monitorias", {
-          params: {
-            search: searchTerm || undefined,
-            status: statusFilter !== "todos" ? statusFilter : undefined,
-          },
-        });
-        setMonitorias(response.data);
-      } catch (error) {
-        toast({
-          title: "Erro",
-          description: "Não foi possível carregar as monitorias.",
-          variant: "destructive",
-        });
-      }
-    };
-
-    const fetchStatistics = async () => {
-      try {
-        const response = await api.get("/monitorias/statistics");
-        setStatistics(response.data);
-      } catch (error) {
-        console.error("Erro ao carregar estatísticas:", error);
-      }
-    };
-
     fetchMonitorias();
     fetchStatistics();
   }, [searchTerm, statusFilter, toast]);
@@ -197,9 +198,9 @@ const Monitorias = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="todos">Todos os status</SelectItem>
-                <SelectItem value="ABERTO">Aberta</SelectItem>
-                <SelectItem value="COMPLETO">Completa</SelectItem>
-                <SelectItem value="ENCERRADO">Encerrada</SelectItem>
+                <SelectItem value="PENDENTE">Pendente</SelectItem>
+                <SelectItem value="APROVADO">Aprovado</SelectItem>
+                <SelectItem value="REJEITADO">Rejeitado</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -214,14 +215,18 @@ const Monitorias = () => {
                     </CardTitle>
                     <span
                       className={`px-2 py-1 rounded text-xs ${
-                        monitoria.eventStatus === "ABERTO"
+                        monitoria.eventStatus === "APROVADO"
                           ? "bg-green-500 text-white"
-                          : monitoria.eventStatus === "COMPLETO"
-                          ? "bg-blue-500 text-white"
-                          : "bg-gray-500 text-white"
+                          : monitoria.eventStatus === "PENDENTE"
+                          ? "bg-yellow-500 text-white"
+                          : "bg-red-500 text-white"
                       }`}
                     >
-                      {monitoria.eventStatus}
+                      {monitoria.eventStatus === "APROVADO"
+                        ? "Aprovado"
+                        : monitoria.eventStatus === "PENDENTE"
+                        ? "Pendente"
+                        : "Rejeitado"}
                     </span>
                   </div>
                 </CardHeader>
@@ -262,7 +267,7 @@ const Monitorias = () => {
                   </div>
 
                   <div className="pt-4 space-y-2">
-                    {isStudent && monitoria.eventStatus === "ABERTO" ? (
+                    {isStudent && monitoria.eventStatus === "APROVADO" ? (
                       <Button
                         className={`w-full ${
                           inscricoes.includes(monitoria.id)
@@ -336,6 +341,7 @@ const Monitorias = () => {
         <CreateMonitoriaDialog
           open={isCreateDialogOpen}
           onOpenChange={setIsCreateDialogOpen}
+          onSuccess={fetchMonitorias}
         />
       )}
     </div>

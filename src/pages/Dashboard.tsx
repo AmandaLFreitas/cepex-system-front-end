@@ -50,8 +50,8 @@ const Dashboard = () => {
 
   const filteredModules = modules.filter(
     (module) =>
-    (module.title === "Usuários" && user?.role === "ADMIN") ||
-    (module.title !== "Usuários") 
+      (module.title === "Usuários" && user?.role === "ADMIN") ||
+      module.title !== "Usuários"
   );
 
   return (
