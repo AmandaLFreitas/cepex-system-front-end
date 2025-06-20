@@ -1,19 +1,199 @@
-
-import React from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import React, { useState, useEffect } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { X } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
+import { api } from "@/lib/api";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface CreateMonitoriaDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onSuccess?: () => void;
 }
 
-const CreateMonitoriaDialog = ({ open, onOpenChange }: CreateMonitoriaDialogProps) => {
+interface Discipline {
+  id: string;
+  name: string;
+  active: boolean;
+}
+
+interface Professor {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  ra: string;
+  cpf: string;
+  number: string;
+  active: boolean;
+  department: string;
+}
+
+interface MonitoriaFormData {
+  title: string;
+  description: string;
+  remote: boolean;
+  location: string;
+  vacancies: number;
+  workload: number;
+  inicialDate: string;
+  finalDate: string;
+  inicialIngressDate: string;
+  finalIngressDate: string;
+  selectionType: string;
+  selectionDate: string;
+  selectionTime: string;
+  divulgationDate: string;
+  eventStatus: string;
+  subject: {
+    id: string;
+    name: string;
+  };
+  professor: {
+    id: string;
+    firstName: string;
+    lastName: string;
+  };
+}
+
+const CreateMonitoriaDialog = ({
+  open,
+  onOpenChange,
+  onSuccess,
+}: CreateMonitoriaDialogProps) => {
+  const { toast } = useToast();
+  const [disciplines, setDisciplines] = useState<Discipline[]>([]);
+  const [professors, setProfessors] = useState<Professor[]>([]);
+  const [formData, setFormData] = useState<MonitoriaFormData>({
+    title: "",
+    description: "",
+    remote: false,
+    location: "",
+    vacancies: 0,
+    workload: 0,
+    inicialDate: "",
+    finalDate: "",
+    inicialIngressDate: "",
+    finalIngressDate: "",
+    selectionType: "PROVA",
+    selectionDate: "",
+    selectionTime: "",
+    divulgationDate: "",
+    eventStatus: "ABERTO",
+    subject: {
+      id: "",
+      name: "",
+    },
+    professor: {
+      id: "",
+      firstName: "",
+      lastName: "",
+    },
+  });
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [disciplinesResponse, professorsResponse] = await Promise.all([
+          api.get("/disciplines"),
+          api.get("/professors"),
+        ]);
+        setDisciplines(disciplinesResponse.data);
+        setProfessors(professorsResponse.data);
+      } catch (error) {
+        toast({
+          title: "Erro",
+          description:
+            "Não foi possível carregar as disciplinas e professores.",
+          variant: "destructive",
+        });
+      }
+    };
+
+    if (open) {
+      fetchData();
+    }
+  }, [open, toast]);
+
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleCheckboxChange = (checked: boolean) => {
+    setFormData((prev) => ({
+      ...prev,
+      remote: checked,
+    }));
+  };
+
+  const handleDisciplineChange = (value: string) => {
+    const discipline = disciplines.find((d) => d.id === value);
+    if (discipline) {
+      setFormData((prev) => ({
+        ...prev,
+        subject: {
+          id: discipline.id,
+          name: discipline.name,
+        },
+      }));
+    }
+  };
+
+  const handleProfessorChange = (value: string) => {
+    const professor = professors.find((p) => p.id === value);
+    if (professor) {
+      setFormData((prev) => ({
+        ...prev,
+        professor: {
+          id: professor.id,
+          firstName: professor.firstName,
+          lastName: professor.lastName,
+        },
+      }));
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await api.post("/monitorias", formData);
+      toast({
+        title: "Sucesso",
+        description: "Monitoria criada com sucesso!",
+      });
+      onOpenChange(false);
+      onSuccess?.();
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível criar a monitoria.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -28,133 +208,270 @@ const CreateMonitoriaDialog = ({ open, onOpenChange }: CreateMonitoriaDialogProp
             <X className="h-4 w-4" />
           </Button>
         </DialogHeader>
-        
+
         <div className="text-sm text-muted-foreground mb-6">
           Preencha os dados para criar uma nova monitoria acadêmica.
         </div>
 
-        <div className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="titulo">Título *</Label>
+              <Label htmlFor="title">Título *</Label>
               <Input
-                id="titulo"
+                id="title"
+                name="title"
                 placeholder="Ex: Monitoria Desenvolvimento Desktop"
-                className="bg-slate-700 border-slate-600"
+                className="bg-background border-border"
+                value={formData.title}
+                onChange={handleInputChange}
+                required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="disciplina">Disciplina *</Label>
-              <Input
-                id="disciplina"
-                placeholder="Ex: Programação Desktop"
-                className="bg-slate-700 border-slate-600"
-              />
+              <Label htmlFor="subject">Disciplina *</Label>
+              <Select
+                value={formData.subject.id}
+                onValueChange={handleDisciplineChange}
+                required
+              >
+                <SelectTrigger className="bg-background border-border">
+                  <SelectValue placeholder="Selecione uma disciplina" />
+                </SelectTrigger>
+                <SelectContent>
+                  {disciplines.map((discipline) => (
+                    <SelectItem key={discipline.id} value={discipline.id}>
+                      {discipline.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="descricao">Descrição *</Label>
+            <Label htmlFor="description">Descrição *</Label>
             <Textarea
-              id="descricao"
+              id="description"
+              name="description"
               placeholder="Descreva os objetivos e conteúdo da monitoria"
-              className="bg-slate-700 border-slate-600 min-h-[100px]"
+              className="bg-background border-border min-h-[100px]"
+              value={formData.description}
+              onChange={handleInputChange}
+              required
             />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="professor">Professor *</Label>
-              <Input
-                id="professor"
-                placeholder="Ex: Prof. Dr. João Silva"
-                className="bg-slate-700 border-slate-600"
-              />
+              <Select
+                value={formData.professor.id}
+                onValueChange={handleProfessorChange}
+                required
+              >
+                <SelectTrigger className="bg-background border-border">
+                  <SelectValue placeholder="Selecione um professor" />
+                </SelectTrigger>
+                <SelectContent>
+                  {professors.map((professor) => (
+                    <SelectItem key={professor.id} value={professor.id}>
+                      {`${professor.firstName} ${professor.lastName}`}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="curso">Curso *</Label>
-              <Input
-                id="curso"
-                placeholder="Ex: Ciência da Computação"
-                className="bg-slate-700 border-slate-600"
-              />
+              <Label htmlFor="selectionType">Tipo de Seleção *</Label>
+              <Select
+                value={formData.selectionType}
+                onValueChange={(value) =>
+                  setFormData((prev) => ({ ...prev, selectionType: value }))
+                }
+                required
+              >
+                <SelectTrigger className="bg-background border-border">
+                  <SelectValue placeholder="Selecione o tipo de seleção" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="PROVA">Prova</SelectItem>
+                  <SelectItem value="ENTREVISTA">Entrevista</SelectItem>
+                  <SelectItem value="PROVA_E_ENTREVISTA">
+                    Prova e Entrevista
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="eventStatus">Status da Monitoria *</Label>
+              <Select
+                value={formData.eventStatus}
+                onValueChange={(value) =>
+                  setFormData((prev) => ({ ...prev, eventStatus: value }))
+                }
+                required
+              >
+                <SelectTrigger className="bg-background border-border">
+                  <SelectValue placeholder="Selecione o status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ABERTA">Aberta</SelectItem>
+                  <SelectItem value="COMPLETA">Completa</SelectItem>
+                  <SelectItem value="CANCELADA">Cancelada</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="vagas">Vagas *</Label>
+              <Label htmlFor="vacancies">Vagas *</Label>
               <Input
-                id="vagas"
+                id="vacancies"
+                name="vacancies"
                 type="number"
                 placeholder="5"
-                className="bg-slate-700 border-slate-600"
+                className="bg-background border-border"
+                value={formData.vacancies}
+                onChange={handleInputChange}
+                required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="carga-horaria">Carga Horária *</Label>
+              <Label htmlFor="workload">Carga Horária *</Label>
               <Input
-                id="carga-horaria"
+                id="workload"
+                name="workload"
                 type="number"
                 placeholder="20"
-                className="bg-slate-700 border-slate-600"
+                className="bg-background border-border"
+                value={formData.workload}
+                onChange={handleInputChange}
+                required
               />
             </div>
             <div className="flex items-center space-x-2 mt-8">
-              <Checkbox id="remota" />
-              <Label htmlFor="remota">Monitoria Remota</Label>
+              <Checkbox
+                id="remote"
+                checked={formData.remote}
+                onCheckedChange={handleCheckboxChange}
+              />
+              <Label htmlFor="remote">Monitoria Remota</Label>
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="local">Local *</Label>
+            <Label htmlFor="location">Local *</Label>
             <Input
-              id="local"
+              id="location"
+              name="location"
               placeholder="Ex: Laboratório de Informática - Sala 201"
-              className="bg-slate-700 border-slate-600"
+              className="bg-background border-border"
+              value={formData.location}
+              onChange={handleInputChange}
+              required
             />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="data-inicio">Data Início *</Label>
+              <Label htmlFor="inicialDate">Data Início *</Label>
               <Input
-                id="data-inicio"
+                id="inicialDate"
+                name="inicialDate"
                 type="date"
-                className="bg-slate-700 border-slate-600"
+                className="bg-background border-border"
+                value={formData.inicialDate}
+                onChange={handleInputChange}
+                required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="data-fim">Data Fim *</Label>
+              <Label htmlFor="finalDate">Data Fim *</Label>
               <Input
-                id="data-fim"
+                id="finalDate"
+                name="finalDate"
                 type="date"
-                className="bg-slate-700 border-slate-600"
+                className="bg-background border-border"
+                value={formData.finalDate}
+                onChange={handleInputChange}
+                required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="inscricoes-ate">Inscrições até *</Label>
+              <Label htmlFor="inicialIngressDate">Inscrições até *</Label>
               <Input
-                id="inscricoes-ate"
+                id="inicialIngressDate"
+                name="inicialIngressDate"
                 type="date"
-                className="bg-slate-700 border-slate-600"
+                className="bg-background border-border"
+                value={formData.inicialIngressDate}
+                onChange={handleInputChange}
+                required
               />
             </div>
           </div>
-        </div>
 
-        <div className="flex justify-end space-x-4 mt-8">
-          <Button
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-            className="border-slate-600"
-          >
-            Cancelar
-          </Button>
-          <Button className="bg-[#EC0444] hover:bg-[#EC0444]/90">
-            Criar Monitoria
-          </Button>
-        </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="selectionDate">Data da Seleção *</Label>
+              <Input
+                id="selectionDate"
+                name="selectionDate"
+                type="date"
+                className="bg-background border-border"
+                value={formData.selectionDate}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="selectionTime">Horário da Seleção *</Label>
+              <Input
+                id="selectionTime"
+                name="selectionTime"
+                type="time"
+                className="bg-background border-border"
+                value={formData.selectionTime}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="divulgationDate">Data de Divulgação *</Label>
+            <Input
+              id="divulgationDate"
+              name="divulgationDate"
+              type="date"
+              className="bg-background border-border"
+              value={formData.divulgationDate}
+              onChange={handleInputChange}
+              required
+            />
+          </div>
+
+          <div className="flex justify-end space-x-4 mt-8">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              className="border-slate-600"
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="submit"
+              className="bg-[#EC0444] hover:bg-[#EC0444]/90"
+            >
+              Criar Monitoria
+            </Button>
+          </div>
+        </form>
       </DialogContent>
     </Dialog>
   );
