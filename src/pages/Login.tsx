@@ -75,6 +75,8 @@ const Login = () => {
   if (isAuthenticated) {
     return null;
   }
+  
+  const currentLogo = theme === "dark" ? "/logo branca png.png" : "/logo em png.png";
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -90,7 +92,7 @@ const Login = () => {
       </div>
       <div className="w-full max-w-md">
         <div className="flex items-center justify-center mb-8">
-          <div className="w-6 h-6 bg-[#EC0444] rounded"></div>
+          <img className="w-10 h-16" src= {currentLogo} alt="LOGO BIOPARK" />
           <span className="text-xl font-bold text-foreground ml-2">
             CEPEX SYSTEM
           </span>

@@ -18,7 +18,7 @@ const Dashboard = () => {
       description: "Gerencie estudantes, professores e coordenadores",
       icon: Users,
       path: "/usuarios",
-      color: "bg-gradient-to-br from-[#EC0444] to-[#EC0444]/60",
+      color: "bg-gradient-to-br from-slate-600 to-slate-700",
       showForStudent: false,
       showForProfessor: false,
     },
@@ -27,7 +27,7 @@ const Dashboard = () => {
       description: "Monitorias, pesquisa e projetos de extensão",
       icon: BookOpen,
       path: "/atividades",
-      color: "bg-gradient-to-br from-slate-600 to-slate-700",
+      color: "bg-gradient-to-br from-[#EC0444] to-[#EC0444]/60",
       showForStudent: true,
     },
     {
