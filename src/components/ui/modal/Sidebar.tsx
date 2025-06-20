@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTheme } from "@/components/ui/modal/ThemeProvider";
 import {
   Menu,
   ChevronLeft,
@@ -28,6 +29,7 @@ export function Sidebar({ className }: SidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const { theme, setTheme } = useTheme();
 
   const handleLogout = () => {
     logout();
@@ -95,6 +97,8 @@ export function Sidebar({ className }: SidebarProps) {
     </div>
   );
 
+  const currentLogo = theme === "dark" ? "/logo branca png.png" : "/logo em png.png";
+
   const SidebarContent = () => (
     <div className="flex h-full flex-col gap-2">
       <div className="flex h-[60px] items-center justify-between border-b px-6">
@@ -105,7 +109,7 @@ export function Sidebar({ className }: SidebarProps) {
             isCollapsed && "hidden"
           )}
         >
-          <div className="w-6 h-6 bg-[#EC0444] rounded"></div>
+          <img className="w-5 h-10" src= {currentLogo} alt="LOGO BIOPARK" />
           <span className="text-xl">CEPEX SYSTEM</span>
         </Link>
         {!isCollapsed && (
