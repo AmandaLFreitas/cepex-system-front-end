@@ -15,6 +15,8 @@ import {
   Eye,
   ChevronDown,
   ChevronUp,
+  Edit,
+  Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -28,6 +30,8 @@ import {
 } from "@/components/ui/select";
 import CreateProjetoDialog from "@/components/ui/modal/CreateProjetoDialog";
 import ViewProjetoDetailsDialog from "@/components/ui/modal/ViewProjetoDetailsDialog";
+import EditProjetoDialog from "@/components/ui/modal/EditProjetoDialog";
+import DeleteConfirmationDialog from "@/components/ui/modal/DeleteConfirmationDialog";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { api } from "@/lib/api";
@@ -65,16 +69,21 @@ const ProjetosPesquisa = () => {
   const [projetos, setProjetos] = useState<Projeto[]>([]);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Projeto | null>(null);
   const [inscricoes, setInscricoes] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("todos");
   const [expandedProjects, setExpandedProjects] = useState<string[]>([]);
+  const [isDeleting, setIsDeleting] = useState(false);
   const { toast } = useToast();
   const { user, hasRole, roles } = useAuth();
 
   const isStudent = hasRole(["STUDENT"]);
   const canCreate = hasRole(["ADMIN", "PROFESSOR", "COORDINATOR", "SECRETARY"]);
+  const canEdit = hasRole(["ADMIN", "PROFESSOR", "COORDINATOR", "SECRETARY"]);
+  const canDelete = hasRole(["ADMIN", "COORDINATOR", "SECRETARY"]);
   const canViewParticipants = hasRole(["ADMIN", "PROFESSOR", "COORDINATOR", "SECRETARY"]);
   const canViewStatusFilter = hasRole(["ADMIN", "PROFESSOR", "COORDINATOR", "SECRETARY"]);
 
@@ -117,6 +126,40 @@ const ProjetosPesquisa = () => {
   const handleViewDetails = (projeto: Projeto) => {
     setSelectedProject(projeto);
     setIsViewDialogOpen(true);
+  };
+
+  const handleEditProject = (projeto: Projeto) => {
+    setSelectedProject(projeto);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleDeleteProject = (projeto: Projeto) => {
+    setSelectedProject(projeto);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!selectedProject) return;
+    
+    setIsDeleting(true);
+    try {
+      await api.delete(`/research-projects/${selectedProject.id}`);
+      toast({
+        title: "Sucesso",
+        description: "Projeto excluído com sucesso!",
+      });
+      fetchProjetos();
+      setIsDeleteDialogOpen(false);
+      setSelectedProject(null);
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível excluir o projeto.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const handleInscricao = async (projetoId: string, title: string) => {
@@ -228,10 +271,10 @@ const ProjetosPesquisa = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {projetos.map((projeto) => (
-              <Card key={projeto.id} className="bg-card text-card-foreground shadow-lg rounded-lg flex flex-col">
+              <Card key={projeto.id} className="bg-gray-800 text-white shadow-lg rounded-lg flex flex-col">
                 <CardHeader>
                   <div className="flex justify-between items-start">
-                    <CardTitle className="text-xl font-bold mb-2">
+                    <CardTitle className="text-xl font-bold mb-2 text-white">
                       {projeto.title}
                     </CardTitle>
                     <span className={`text-xs font-semibold px-2 py-1 rounded-full ${getStatusDisplay(projeto.status).color}`}>
@@ -241,29 +284,29 @@ const ProjetosPesquisa = () => {
                 </CardHeader>
                 <CardContent className="flex-grow flex flex-col">
                   <div className="flex-grow">
-                    <div className="flex items-center text-sm text-muted-foreground mb-3">
-                      <Users className="h-4 w-4 mr-2" />
+                    <div className="flex items-center text-sm text-gray-300 mb-3">
+                      <Users className="h-4 w-4 mr-2 text-gray-300" />
                       <span>{projeto.leadResearcher.login}</span>
                     </div>
                     {projeto.collaborators && projeto.collaborators.length > 0 && (
-                      <div className="flex items-center text-sm text-muted-foreground mb-3">
-                        <BookOpen className="h-4 w-4 mr-2" />
+                      <div className="flex items-center text-sm text-gray-300 mb-3">
+                        <BookOpen className="h-4 w-4 mr-2 text-gray-300" />
                         <span>{projeto.collaborators.length} colaborador(es)</span>
                       </div>
                     )}
-                    <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
+                    <p className="text-sm text-gray-300 mb-4 line-clamp-3">
                       {projeto.description}
                     </p>
                   </div>
                   
-                  <div className="border-t pt-4 mt-4">
-                    <div className="flex justify-between text-sm text-muted-foreground">
+                  <div className="border-t border-gray-600 pt-4 mt-4">
+                    <div className="flex justify-between text-sm text-gray-300">
                       <div className="flex items-center">
-                        <Calendar className="h-4 w-4 mr-2" />
+                        <Calendar className="h-4 w-4 mr-2 text-gray-300" />
                         <span>Início: {formatDate(projeto.startDate)}</span>
                       </div>
                       <div className="flex items-center">
-                        <Calendar className="h-4 w-4 mr-2" />
+                        <Calendar className="h-4 w-4 mr-2 text-gray-300" />
                         <span>Fim: {formatDate(projeto.endDate)}</span>
                       </div>
                     </div>
@@ -271,14 +314,36 @@ const ProjetosPesquisa = () => {
 
                   <div className="mt-4 flex flex-col gap-2">
                     {!isStudent && (
-                      <Button
-                        variant="outline"
-                        className="w-full"
-                        onClick={() => handleViewDetails(projeto)}
-                      >
-                        <Eye className="h-4 w-4 mr-2" />
-                        Ver Mais
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          className="flex-1 bg-[#EC0444] hover:bg-[#EC0444]/90 text-white border-[#EC0444] hover:border-[#EC0444]/90"
+                          onClick={() => handleViewDetails(projeto)}
+                        >
+                          <Eye className="h-4 w-4 mr-2" />
+                          Ver Mais
+                        </Button>
+                        {canEdit && (
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="bg-gray-700 hover:bg-gray-600 border-gray-600"
+                            onClick={() => handleEditProject(projeto)}
+                          >
+                            <Edit className="h-4 w-4 text-gray-300" />
+                          </Button>
+                        )}
+                        {canDelete && (
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="text-[#EC0444] hover:text-[#EC0444]/90 border-[#EC0444] hover:border-[#EC0444]/90 bg-gray-700 hover:bg-gray-600"
+                            onClick={() => handleDeleteProject(projeto)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
                     )}
                     
                     {isStudent && (
@@ -319,6 +384,22 @@ const ProjetosPesquisa = () => {
         onOpenChange={setIsViewDialogOpen}
         userRoles={roles}
         onStatusChange={fetchProjetos}
+      />
+
+      <EditProjetoDialog
+        projeto={selectedProject}
+        open={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+        onSuccess={fetchProjetos}
+      />
+
+      <DeleteConfirmationDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        onConfirm={confirmDelete}
+        title="Excluir Projeto"
+        description={`Tem certeza que deseja excluir o projeto "${selectedProject?.title}"? Esta ação não pode ser desfeita.`}
+        isLoading={isDeleting}
       />
     </div>
   );
