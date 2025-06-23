@@ -4,12 +4,13 @@ import { jwtDecode } from "jwt-decode";
 interface User {
   id: string;
   login: string;
-  role: string;
+  roles: string[];
 }
 
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
+  roles: string[];
   login: (token: string) => void;
   logout: () => void;
   hasRole: (roles: string[]) => boolean;
@@ -20,37 +21,38 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
 
+  const processToken = (token: string) => {
+    try {
+      const decoded = jwtDecode<{
+        sub: string;
+        role: string;
+        userId: string;
+      }>(token);
+      
+      const userRoles = decoded.role ? decoded.role.split(',') : [];
+
+      setUser({
+        id: decoded.userId,
+        login: decoded.sub,
+        roles: userRoles,
+      });
+    } catch (error) {
+      console.error("Error decoding or processing token:", error);
+      localStorage.removeItem("token");
+      setUser(null);
+    }
+  };
+
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
-      try {
-        const decoded = jwtDecode<{
-          sub: string;
-          role: string;
-          userId: string;
-        }>(token);
-        setUser({
-          id: decoded.userId,
-          login: decoded.sub,
-          role: decoded.role,
-        });
-      } catch (error) {
-        console.error("Error decoding token:", error);
-        localStorage.removeItem("token");
-      }
+      processToken(token);
     }
   }, []);
 
   const login = (token: string) => {
     localStorage.setItem("token", token);
-    const decoded = jwtDecode<{ sub: string; role: string; userId: string }>(
-      token
-    );
-    setUser({
-      id: decoded.userId,
-      login: decoded.sub,
-      role: decoded.role,
-    });
+    processToken(token);
   };
 
   const logout = () => {
@@ -60,13 +62,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const hasRole = (roles: string[]) => {
     if (!user) return false;
-    return roles.includes(user.role);
+    return user.roles.some(userRole => roles.includes(userRole));
+  };
+
+  const value = {
+    user,
+    isAuthenticated: !!user,
+    roles: user?.roles || [],
+    login,
+    logout,
+    hasRole,
   };
 
   return (
-    <AuthContext.Provider
-      value={{ user, isAuthenticated: !!user, login, logout, hasRole }}
-    >
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );

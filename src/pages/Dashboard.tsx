@@ -8,9 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const isStudent = user?.role === "STUDENT";
-  const isProfessor = user?.role === "PROFESSOR";
+  const { hasRole } = useAuth();
 
   const modules = [
     {
@@ -19,8 +17,6 @@ const Dashboard = () => {
       icon: Users,
       path: "/usuarios",
       color: "bg-gradient-to-br from-slate-600 to-slate-700",
-      showForStudent: false,
-      showForProfessor: false,
     },
     {
       title: "Atividades",
@@ -28,7 +24,6 @@ const Dashboard = () => {
       icon: BookOpen,
       path: "/atividades",
       color: "bg-gradient-to-br from-[#EC0444] to-[#EC0444]/60",
-      showForStudent: true,
     },
     {
       title: "Aprovações",
@@ -36,7 +31,6 @@ const Dashboard = () => {
       icon: CheckCircle,
       path: "/aprovacoes",
       color: "bg-gradient-to-br from-blue-600 to-blue-700",
-      showForStudent: true,
     },
     {
       title: "Certificados",
@@ -44,14 +38,16 @@ const Dashboard = () => {
       icon: Award,
       path: "/certificados",
       color: "bg-gradient-to-br from-green-600 to-green-700",
-      showForStudent: true,
     },
   ];
 
   const filteredModules = modules.filter(
-    (module) =>
-      (module.title === "Usuários" && user?.role === "ADMIN") ||
-      module.title !== "Usuários"
+    (module) => {
+      if (module.title === "Usuários") {
+        return hasRole(['ADMIN']);
+      }
+      return true;
+    }
   );
 
   return (
