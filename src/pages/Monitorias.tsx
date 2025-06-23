@@ -52,6 +52,7 @@ const Monitorias = () => {
 
   const isStudent = hasRole(["STUDENT"]);
   const canCreate = hasRole(["ADMIN", "PROFESSOR"]);
+  const canViewStatistics = hasRole(["ADMIN", "COORDENATION", "SECRETARY"]);
 
   const handleInscricao = async (monitoriaId: string, title: string) => {
     try {
@@ -103,6 +104,8 @@ const Monitorias = () => {
   };
 
   const fetchStatistics = async () => {
+    if (!canViewStatistics) return;
+
     try {
       const response = await api.get("/monitorias/statistics");
       setStatistics(response.data);
@@ -143,8 +146,10 @@ const Monitorias = () => {
 
   useEffect(() => {
     fetchMonitorias();
-    fetchStatistics();
-  }, [searchTerm, statusFilter, toast]);
+    if (canViewStatistics) {
+      fetchStatistics();
+    }
+  }, [searchTerm, statusFilter, toast, canViewStatistics]);
 
   useEffect(() => {
     if (monitorias.length > 0 && isStudent) {
@@ -318,39 +323,43 @@ const Monitorias = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card className="bg-card border-border text-center">
-              <CardContent className="p-6">
-                <Users className="h-12 w-12 mx-auto mb-4 text-blue-500" />
-                <div className="text-4xl font-bold text-blue-500">
-                  {statistics.monitoriasAbertas}
-                </div>
-                <div className="text-sm text-muted-foreground mt-2">
-                  Monitorias Abertas
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="bg-card border-border text-center">
-              <CardContent className="p-6">
-                <Users className="h-12 w-12 mx-auto mb-4 text-green-500" />
-                <div className="text-4xl font-bold text-green-500">
-                  {statistics.monitoresAtivos}
-                </div>
-                <div className="text-sm text-muted-foreground mt-2">
-                  Monitores Ativos
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="bg-card border-border text-center">
-              <CardContent className="p-6">
-                <Users className="h-12 w-12 mx-auto mb-4 text-purple-500" />
-                <div className="text-4xl font-bold text-purple-500">
-                  {statistics.candidatosPendentes}
-                </div>
-                <div className="text-sm text-muted-foreground mt-2">
-                  Candidatos Pendentes
-                </div>
-              </CardContent>
-            </Card>
+            {canViewStatistics && (
+              <>
+                <Card className="bg-card border-border text-center">
+                  <CardContent className="p-6">
+                    <Users className="h-12 w-12 mx-auto mb-4 text-blue-500" />
+                    <div className="text-4xl font-bold text-blue-500">
+                      {statistics.monitoriasAbertas}
+                    </div>
+                    <div className="text-sm text-muted-foreground mt-2">
+                      Monitorias Abertas
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="bg-card border-border text-center">
+                  <CardContent className="p-6">
+                    <Users className="h-12 w-12 mx-auto mb-4 text-green-500" />
+                    <div className="text-4xl font-bold text-green-500">
+                      {statistics.monitoresAtivos}
+                    </div>
+                    <div className="text-sm text-muted-foreground mt-2">
+                      Monitores Ativos
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="bg-card border-border text-center">
+                  <CardContent className="p-6">
+                    <Users className="h-12 w-12 mx-auto mb-4 text-purple-500" />
+                    <div className="text-4xl font-bold text-purple-500">
+                      {statistics.candidatosPendentes}
+                    </div>
+                    <div className="text-sm text-muted-foreground mt-2">
+                      Candidatos Pendentes
+                    </div>
+                  </CardContent>
+                </Card>
+              </>
+            )}
           </div>
         </div>
       </main>
