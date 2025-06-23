@@ -33,6 +33,13 @@ interface Discipline {
   active: boolean;
 }
 
+interface Course {
+  id: string;
+  name: string;
+  semesters: number;
+  active: boolean;
+}
+
 interface Professor {
   id: string;
   firstName: string;
@@ -60,7 +67,11 @@ interface MonitoriaFormData {
   selectionDate: string;
   selectionTime: string;
   divulgationDate: string;
-  eventStatus: string;
+  statusMonitoria: string;
+  course: {
+    id: string;
+    name: string;
+  };
   subject: {
     id: string;
     name: string;
@@ -79,6 +90,7 @@ const CreateMonitoriaDialog = ({
 }: CreateMonitoriaDialogProps) => {
   const { toast } = useToast();
   const [disciplines, setDisciplines] = useState<Discipline[]>([]);
+  const [courses, setCourses] = useState<Course[]>([]);
   const [professors, setProfessors] = useState<Professor[]>([]);
   const [formData, setFormData] = useState<MonitoriaFormData>({
     title: "",
@@ -91,11 +103,15 @@ const CreateMonitoriaDialog = ({
     finalDate: "",
     inicialIngressDate: "",
     finalIngressDate: "",
-    selectionType: "PROVA",
+    selectionType: "ENTREVISTA",
     selectionDate: "",
     selectionTime: "",
     divulgationDate: "",
-    eventStatus: "ABERTO",
+    statusMonitoria: "PENDENTE",
+    course: {
+      id: "",
+      name: "",
+    },
     subject: {
       id: "",
       name: "",
@@ -110,17 +126,20 @@ const CreateMonitoriaDialog = ({
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [disciplinesResponse, professorsResponse] = await Promise.all([
-          api.get("/disciplines"),
-          api.get("/professors"),
-        ]);
+        const [disciplinesResponse, coursesResponse, professorsResponse] =
+          await Promise.all([
+            api.get("/disciplines"),
+            api.get("/courses"),
+            api.get("/professors"),
+          ]);
         setDisciplines(disciplinesResponse.data);
+        setCourses(coursesResponse.data);
         setProfessors(professorsResponse.data);
       } catch (error) {
         toast({
           title: "Erro",
           description:
-            "Não foi possível carregar as disciplinas e professores.",
+            "Não foi possível carregar as disciplinas, cursos e professores.",
           variant: "destructive",
         });
       }
@@ -156,6 +175,19 @@ const CreateMonitoriaDialog = ({
         subject: {
           id: discipline.id,
           name: discipline.name,
+        },
+      }));
+    }
+  };
+
+  const handleCourseChange = (value: string) => {
+    const course = courses.find((c) => c.id === value);
+    if (course) {
+      setFormData((prev) => ({
+        ...prev,
+        course: {
+          id: course.id,
+          name: course.name,
         },
       }));
     }
@@ -228,6 +260,28 @@ const CreateMonitoriaDialog = ({
               />
             </div>
             <div className="space-y-2">
+              <Label htmlFor="course">Curso *</Label>
+              <Select
+                value={formData.course.id}
+                onValueChange={handleCourseChange}
+                required
+              >
+                <SelectTrigger className="bg-background border-border">
+                  <SelectValue placeholder="Selecione um curso" />
+                </SelectTrigger>
+                <SelectContent>
+                  {courses.map((course) => (
+                    <SelectItem key={course.id} value={course.id}>
+                      {course.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
               <Label htmlFor="subject">Disciplina *</Label>
               <Select
                 value={formData.subject.id}
@@ -294,10 +348,12 @@ const CreateMonitoriaDialog = ({
                   <SelectValue placeholder="Selecione o tipo de seleção" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="PROVA">Prova</SelectItem>
                   <SelectItem value="ENTREVISTA">Entrevista</SelectItem>
-                  <SelectItem value="PROVA_E_ENTREVISTA">
-                    Prova e Entrevista
+                  <SelectItem value="ANALISE_HISTORICO">
+                    Análise de Histórico
+                  </SelectItem>
+                  <SelectItem value="ENTREVISTA_ANALISE_HISTORICO">
+                    Entrevista e Análise de Histórico
                   </SelectItem>
                 </SelectContent>
               </Select>
@@ -306,11 +362,11 @@ const CreateMonitoriaDialog = ({
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="eventStatus">Status da Monitoria *</Label>
+              <Label htmlFor="statusMonitoria">Status da Monitoria *</Label>
               <Select
-                value={formData.eventStatus}
+                value={formData.statusMonitoria}
                 onValueChange={(value) =>
-                  setFormData((prev) => ({ ...prev, eventStatus: value }))
+                  setFormData((prev) => ({ ...prev, statusMonitoria: value }))
                 }
                 required
               >
@@ -318,8 +374,9 @@ const CreateMonitoriaDialog = ({
                   <SelectValue placeholder="Selecione o status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ABERTA">Aberta</SelectItem>
-                  <SelectItem value="COMPLETA">Completa</SelectItem>
+                  <SelectItem value="PENDENTE">Pendente</SelectItem>
+                  <SelectItem value="APROVADA">Aprovada</SelectItem>
+                  <SelectItem value="REJEITADA">Rejeitada</SelectItem>
                   <SelectItem value="CANCELADA">Cancelada</SelectItem>
                 </SelectContent>
               </Select>
@@ -409,6 +466,23 @@ const CreateMonitoriaDialog = ({
                 type="date"
                 className="bg-background border-border"
                 value={formData.inicialIngressDate}
+                onChange={handleInputChange}
+                required
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="finalIngressDate">
+                Data Final de Inscrições *
+              </Label>
+              <Input
+                id="finalIngressDate"
+                name="finalIngressDate"
+                type="date"
+                className="bg-background border-border"
+                value={formData.finalIngressDate}
                 onChange={handleInputChange}
                 required
               />
