@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+// src/pages/ProjetosPesquisa.tsx
+
+import React, { useEffect, useState } from "react";
 import Header from "@/components/ui/modal/Header";
 import Footer from "@/components/ui/modal/Footer";
 import FloatingRating from "@/components/ui/modal/FloatingRating";
@@ -11,6 +13,8 @@ import {
   Calendar,
   BookOpen,
   Eye,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -23,76 +27,138 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import CreateProjetoDialog from "@/components/ui/modal/CreateProjetoDialog";
+import ViewProjetoDetailsDialog from "@/components/ui/modal/ViewProjetoDetailsDialog";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { api } from "@/lib/api";
+
+interface User {
+  id: string;
+  login: string;
+  email: string;
+  firstName?: string;
+  lastName?: string;
+  ra?: string; // Para alunos
+}
+
+interface AlunoInscrito {
+  id: string;
+  name: string;
+  registration: string;
+  email: string;
+}
+
+interface Projeto {
+  id: string;
+  title: string;
+  description: string;
+  startDate: string;
+  endDate: string;
+  status: string; // ABERTO, ANALISE, COMPLETO, CANCELADO
+  leadResearcher: User;
+  collaborators?: User[];
+  participantes?: AlunoInscrito[];
+}
 
 const ProjetosPesquisa = () => {
   const navigate = useNavigate();
+  const [projetos, setProjetos] = useState<Projeto[]>([]);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [inscricoes, setInscricoes] = useState<number[]>([2]);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [selectedProject, setSelectedProject] = useState<Projeto | null>(null);
+  const [inscricoes, setInscricoes] = useState<string[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("todos");
+  const [expandedProjects, setExpandedProjects] = useState<string[]>([]);
   const { toast } = useToast();
-  const { hasRole } = useAuth();
+  const { user, hasRole, roles } = useAuth();
 
   const isStudent = hasRole(["STUDENT"]);
   const canCreate = hasRole(["ADMIN", "PROFESSOR", "COORDINATOR", "SECRETARY"]);
+  const canViewParticipants = hasRole(["ADMIN", "PROFESSOR", "COORDINATOR", "SECRETARY"]);
+  const canViewStatusFilter = hasRole(["ADMIN", "PROFESSOR", "COORDINATOR", "SECRETARY"]);
 
-  const handleInscricao = (projetoId: number, titulo: string) => {
-    if (inscricoes.includes(projetoId)) {
-      setInscricoes(inscricoes.filter((id) => id !== projetoId));
-      toast({
-        title: "Inscrição cancelada",
-        description: `Você cancelou sua inscrição no projeto ${titulo}`,
+  const fetchProjetos = async () => {
+    try {
+      const response = await api.get("/research-projects", {
+        params: {
+          search: searchTerm || undefined,
+          status: statusFilter !== "todos" ? statusFilter.toUpperCase() : undefined,
+        },
       });
-    } else {
-      setInscricoes([...inscricoes, projetoId]);
+      setProjetos(response.data);
+    } catch (error) {
       toast({
-        title: "Inscrição realizada",
-        description: `Você se inscreveu no projeto ${titulo}`,
+        title: "Erro",
+        description: "Não foi possível carregar os projetos de pesquisa.",
+        variant: "destructive",
       });
     }
   };
 
-  const handleViewDetails = (projetoId: number) => {
-    navigate(`/projetos-pesquisa/${projetoId}`);
+  const fetchUserInscricoes = async () => {
+    if (user) {
+      try {
+        const response = await api.get(`/research-projects/inscricoes/aluno/${user.id}`);
+        setInscricoes(response.data.map((p: Projeto) => p.id));
+      } catch (error) {
+        console.error("Erro ao carregar inscrições do usuário:", error);
+      }
+    }
   };
 
-  const projetos = [
-    {
-      id: 1,
-      titulo: "Inteligência Artificial em Sistemas de Saúde",
-      professor: "Prof. Dr. Carlos Silva",
-      departamento: "Computação",
-      descricao:
-        "Desenvolvimento de algoritmos de IA para diagnóstico médico assistido.",
-      inicio: "31/01/2025",
-      participantes: 1,
-      status: "Ativo",
-      inscrito: false,
-    },
-    {
-      id: 2,
-      titulo: "Sustentabilidade em Materiais de Construção",
-      professor: "Prof. Dra. Ana Santos",
-      departamento: "Engenharia Civil",
-      descricao: "Pesquisa sobre materiais sustentáveis para construção civil.",
-      inicio: "28/02/2025",
-      participantes: 4,
-      status: "Ativo",
-      inscrito: true,
-    },
-    {
-      id: 3,
-      titulo: "Biotecnologia Aplicada à Agricultura",
-      professor: "Prof. Dr. João Costa",
-      departamento: "Biotecnologia",
-      descricao:
-        "Desenvolvimento de soluções biotecnológicas para agricultura sustentável.",
-      inicio: "14/02/2025",
-      participantes: 2,
-      status: "Ativo",
-      inscrito: false,
-    },
-  ];
+  useEffect(() => {
+    fetchProjetos();
+    if (isStudent) {
+      fetchUserInscricoes();
+    }
+  }, [searchTerm, statusFilter, isStudent, user]);
+
+  const handleViewDetails = (projeto: Projeto) => {
+    setSelectedProject(projeto);
+    setIsViewDialogOpen(true);
+  };
+
+  const handleInscricao = async (projetoId: string, title: string) => {
+    try {
+      if (inscricoes.includes(projetoId)) {
+        await api.delete(`/research-projects/${projetoId}/inscrever`);
+        setInscricoes(inscricoes.filter((id) => id !== projetoId));
+        toast({ title: "Inscrição cancelada" });
+      } else {
+        await api.post(`/research-projects/${projetoId}/inscrever`);
+        setInscricoes([...inscricoes, projetoId]);
+        toast({ title: "Inscrição realizada" });
+      }
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Ocorreu um erro ao processar sua inscrição. Verifique se já está inscrito ou se o período de inscrição está aberto.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const getStatusDisplay = (status: string) => {
+    switch (status) {
+      case "ABERTO":
+        return { text: "Aberto", color: "bg-green-500 text-white" };
+      case "ANALISE":
+        return { text: "Em Análise", color: "bg-yellow-500 text-white" };
+      case "COMPLETO":
+        return { text: "Concluído", color: "bg-blue-500 text-white" };
+      case "CANCELADO":
+        return { text: "Cancelado", color: "bg-red-500 text-white" };
+      default:
+        return { text: status, color: "bg-gray-500 text-white" };
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    return date.toLocaleDateString('pt-BR');
+  };
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -133,84 +199,101 @@ const ProjetosPesquisa = () => {
             )}
           </div>
 
-          <div className="flex flex-col md:flex-row gap-4 mb-6">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+          <div className="flex justify-between items-center mb-6">
+            <div className="relative w-full max-w-sm">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Buscar por título, orientador ou área..."
+                placeholder="Buscar por título ou pesquisador líder..."
                 className="pl-10"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <Select defaultValue="todas">
-              <SelectTrigger className="w-full md:w-48">
-                <SelectValue placeholder="Filtrar por área" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="todas">Todas as áreas</SelectItem>
-                <SelectItem value="computacao">Computação</SelectItem>
-                <SelectItem value="engenharia">Engenharia</SelectItem>
-                <SelectItem value="biotecnologia">Biotecnologia</SelectItem>
-              </SelectContent>
-            </Select>
+
+            {canViewStatusFilter && (
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos os status</SelectItem>
+                  <SelectItem value="aberto">Aberto</SelectItem>
+                  <SelectItem value="analise">Em Análise</SelectItem>
+                  <SelectItem value="completo">Concluído</SelectItem>
+                  <SelectItem value="cancelado">Cancelado</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {projetos.map((projeto) => (
-              <Card key={projeto.id} className="bg-card border-border">
-                <CardHeader className="pb-4">
+              <Card key={projeto.id} className="bg-card text-card-foreground shadow-lg rounded-lg flex flex-col">
+                <CardHeader>
                   <div className="flex justify-between items-start">
-                    <CardTitle className="text-xl text-foreground mb-2">
-                      {projeto.titulo}
+                    <CardTitle className="text-xl font-bold mb-2">
+                      {projeto.title}
                     </CardTitle>
-                    <span className="px-2 py-1 rounded text-xs bg-green-500 text-white">
-                      {projeto.status}
+                    <span className={`text-xs font-semibold px-2 py-1 rounded-full ${getStatusDisplay(projeto.status).color}`}>
+                      {getStatusDisplay(projeto.status).text}
                     </span>
                   </div>
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    <Users className="h-4 w-4 mr-2" />
-                    <span>{projeto.professor}</span>
-                  </div>
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    <BookOpen className="h-4 w-4 mr-2" />
-                    <span>{projeto.departamento}</span>
-                  </div>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <p className="text-sm text-muted-foreground">
-                    {projeto.descricao}
-                  </p>
-
-                  <div className="flex items-center justify-between text-sm text-muted-foreground">
-                    <div className="flex items-center">
-                      <Calendar className="h-4 w-4 mr-2" />
-                      <span>Início: {projeto.inicio}</span>
+                <CardContent className="flex-grow flex flex-col">
+                  <div className="flex-grow">
+                    <div className="flex items-center text-sm text-muted-foreground mb-3">
+                      <Users className="h-4 w-4 mr-2" />
+                      <span>{projeto.leadResearcher.login}</span>
                     </div>
-                    <span>{projeto.participantes} participantes</span>
+                    {projeto.collaborators && projeto.collaborators.length > 0 && (
+                      <div className="flex items-center text-sm text-muted-foreground mb-3">
+                        <BookOpen className="h-4 w-4 mr-2" />
+                        <span>{projeto.collaborators.length} colaborador(es)</span>
+                      </div>
+                    )}
+                    <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
+                      {projeto.description}
+                    </p>
+                  </div>
+                  
+                  <div className="border-t pt-4 mt-4">
+                    <div className="flex justify-between text-sm text-muted-foreground">
+                      <div className="flex items-center">
+                        <Calendar className="h-4 w-4 mr-2" />
+                        <span>Início: {formatDate(projeto.startDate)}</span>
+                      </div>
+                      <div className="flex items-center">
+                        <Calendar className="h-4 w-4 mr-2" />
+                        <span>Fim: {formatDate(projeto.endDate)}</span>
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="pt-2">
-                    {isStudent ? (
+                  <div className="mt-4 flex flex-col gap-2">
+                    {!isStudent && (
                       <Button
-                        className={`w-full ${
-                          inscricoes.includes(projeto.id)
-                            ? "bg-red-600 hover:bg-red-700"
-                            : "bg-[#EC0444] hover:bg-[#EC0444]/90"
-                        }`}
-                        onClick={() =>
-                          handleInscricao(projeto.id, projeto.titulo)
-                        }
-                      >
-                        {inscricoes.includes(projeto.id)
-                          ? "Cancelar Inscrição"
-                          : "Inscrever-se"}
-                      </Button>
-                    ) : (
-                      <Button
-                        className="w-full bg-[#EC0444] hover:bg-[#EC0444]/90"
-                        onClick={() => handleViewDetails(projeto.id)}
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => handleViewDetails(projeto)}
                       >
                         <Eye className="h-4 w-4 mr-2" />
                         Ver Mais
+                      </Button>
+                    )}
+                    
+                    {isStudent && (
+                      <Button
+                        onClick={() => handleInscricao(projeto.id, projeto.title)}
+                        className="w-full"
+                        variant={inscricoes.includes(projeto.id) ? 'destructive' : 'default'}
+                        disabled={projeto.status !== 'ABERTO'}
+                      >
+                        {projeto.status !== 'ABERTO' 
+                          ? 'Inscrições Fechadas' 
+                          : inscricoes.includes(projeto.id) 
+                            ? 'Cancelar Inscrição' 
+                            : 'Inscrever-se'
+                        }
                       </Button>
                     )}
                   </div>
@@ -223,12 +306,20 @@ const ProjetosPesquisa = () => {
 
       <Footer />
       <FloatingRating />
-      {canCreate && (
-        <CreateProjetoDialog
-          open={isCreateDialogOpen}
-          onOpenChange={setIsCreateDialogOpen}
-        />
-      )}
+
+      <CreateProjetoDialog
+        open={isCreateDialogOpen}
+        onOpenChange={setIsCreateDialogOpen}
+        onSuccess={fetchProjetos}
+      />
+
+      <ViewProjetoDetailsDialog
+        projeto={selectedProject}
+        open={isViewDialogOpen}
+        onOpenChange={setIsViewDialogOpen}
+        userRoles={roles}
+        onStatusChange={fetchProjetos}
+      />
     </div>
   );
 };

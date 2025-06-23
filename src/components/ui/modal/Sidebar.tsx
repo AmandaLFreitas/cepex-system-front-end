@@ -97,7 +97,7 @@ export function Sidebar({ className }: SidebarProps) {
     </div>
   );
 
-  const currentLogo = theme === "dark" ? "/logo branca png.png" : "/logo em png.png";
+  const currentLogo = theme === "dark" ? "./logo branca png.png" : "./logo em png.png";
 
   const SidebarContent = () => (
     <div className="flex h-full flex-col gap-2">
