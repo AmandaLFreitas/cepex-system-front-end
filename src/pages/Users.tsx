@@ -37,7 +37,7 @@ const Users = () => {
   useEffect(() => {
     const fetchUserCounts = async () => {
       try {
-        const response = await api.get("/users");
+        const response = await api.get("/users/");
         setUserCounts(response.data);
       } catch (error) {
         toast({

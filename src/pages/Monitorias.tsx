@@ -24,49 +24,21 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import CreateMonitoriaDialog from "@/components/ui/modal/CreateMonitoriaDialog";
+import EditMonitoriaDialog from "@/components/ui/modal/EditMonitoriaDialog";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { api } from "@/lib/api";
-
-interface Monitoria {
-  id: string;
-  title: string;
-  description: string;
-  remote: boolean;
-  location: string;
-  vacancies: number;
-  workload: number;
-  inicialDate: string;
-  finalDate: string;
-  inicialIngressDate: string;
-  finalIngressDate: string;
-  selectionType: string;
-  selectionDate: string;
-  selectionTime: string;
-  divulgationDate: string;
-  eventStatus: string;
-  subject?: {
-    id: string;
-    name: string;
-  };
-  professor?: {
-    id: string;
-    firstName: string;
-    lastName: string;
-  };
-}
-
-interface MonitoriaStatistics {
-  monitoriasAbertas: number;
-  monitoresAtivos: number;
-  candidatosPendentes: number;
-}
+import { Monitoria, MonitoriaStatistics } from "@/types/monitoria";
 
 const Monitorias = () => {
   const navigate = useNavigate();
   const [monitoria, setMonitoria] = useState<Monitoria | null>(null);
   const [monitorias, setMonitorias] = useState<Monitoria[]>([]);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [selectedMonitoria, setSelectedMonitoria] = useState<Monitoria | null>(
+    null
+  );
   const [inscricoes, setInscricoes] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("todos");
@@ -107,8 +79,9 @@ const Monitorias = () => {
     }
   };
 
-  const handleViewDetails = (monitoriaId: string) => {
-    navigate(`/monitorias/${monitoriaId}`);
+  const handleViewDetails = (monitoria: Monitoria) => {
+    setSelectedMonitoria(monitoria);
+    setIsEditDialogOpen(true);
   };
 
   const fetchMonitorias = async () => {
@@ -215,18 +188,18 @@ const Monitorias = () => {
                     </CardTitle>
                     <span
                       className={`px-2 py-1 rounded text-xs ${
-                        monitoria.eventStatus === "APROVADO"
+                        monitoria.statusMonitoria === "APROVADA"
                           ? "bg-green-500 text-white"
-                          : monitoria.eventStatus === "PENDENTE"
+                          : monitoria.statusMonitoria === "PENDENTE"
                           ? "bg-yellow-500 text-white"
                           : "bg-red-500 text-white"
                       }`}
                     >
-                      {monitoria.eventStatus === "APROVADO"
-                        ? "Aprovado"
-                        : monitoria.eventStatus === "PENDENTE"
+                      {monitoria.statusMonitoria === "APROVADA"
+                        ? "Aprovada"
+                        : monitoria.statusMonitoria === "PENDENTE"
                         ? "Pendente"
-                        : "Rejeitado"}
+                        : "Rejeitada"}
                     </span>
                   </div>
                 </CardHeader>
@@ -267,7 +240,7 @@ const Monitorias = () => {
                   </div>
 
                   <div className="pt-4 space-y-2">
-                    {isStudent && monitoria.eventStatus === "APROVADO" ? (
+                    {isStudent && monitoria.statusMonitoria === "APROVADA" ? (
                       <Button
                         className={`w-full ${
                           inscricoes.includes(monitoria.id)
@@ -285,7 +258,7 @@ const Monitorias = () => {
                     ) : canCreate ? (
                       <Button
                         className="w-full bg-[#EC0444] hover:bg-[#EC0444]/90"
-                        onClick={() => handleViewDetails(monitoria.id)}
+                        onClick={() => handleViewDetails(monitoria)}
                       >
                         <Eye className="h-4 w-4 mr-2" />
                         Ver Mais
@@ -335,15 +308,21 @@ const Monitorias = () => {
         </div>
       </main>
 
+      <CreateMonitoriaDialog
+        open={isCreateDialogOpen}
+        onOpenChange={setIsCreateDialogOpen}
+        onSuccess={fetchMonitorias}
+      />
+
+      <EditMonitoriaDialog
+        open={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+        monitoria={selectedMonitoria}
+        onSuccess={fetchMonitorias}
+      />
+
       <Footer />
       <FloatingRating />
-      {canCreate && (
-        <CreateMonitoriaDialog
-          open={isCreateDialogOpen}
-          onOpenChange={setIsCreateDialogOpen}
-          onSuccess={fetchMonitorias}
-        />
-      )}
     </div>
   );
 };
