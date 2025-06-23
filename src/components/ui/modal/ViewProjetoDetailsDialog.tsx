@@ -216,17 +216,33 @@ const ViewProjetoDetailsDialog = ({
                 </AccordionItem>
                 <AccordionItem value="enrolled-students">
                     <AccordionTrigger>
-                        <h3 className="font-semibold text-lg flex items-center"><ClipboardList className="h-5 w-5 mr-2" />Alunos Inscritos</h3>
+                        <h3 className="font-semibold text-lg flex items-center">
+                            <ClipboardList className="h-5 w-5 mr-2" />
+                            Alunos Inscritos ({inscritos.length})
+                        </h3>
                     </AccordionTrigger>
                     <AccordionContent className="p-4 bg-muted/50 rounded-b-lg">
                         {isLoading ? (
-                            <p>Carregando...</p>
+                            <p className="text-sm text-muted-foreground">Carregando...</p>
                         ) : inscritos.length > 0 ? (
-                            <ul className="space-y-2">
-                                {inscritos.map(aluno => (
-                                    <li key={aluno.id} className="text-sm text-muted-foreground">{aluno.name} ({aluno.email})</li>
-                                ))}
-                            </ul>
+                            <div className="space-y-3">
+                                <p className="text-sm font-medium text-foreground">
+                                    Total de alunos inscritos: {inscritos.length}
+                                </p>
+                                <div className="grid gap-2">
+                                    {inscritos.map((aluno, index) => (
+                                        <div key={aluno.id} className="flex items-center justify-between p-2 bg-background rounded border">
+                                            <div>
+                                                <p className="text-sm font-medium text-foreground">{aluno.name}</p>
+                                                <p className="text-xs text-muted-foreground">RA: {aluno.registration} | {aluno.email}</p>
+                                            </div>
+                                            <Badge variant="outline" className="text-xs">
+                                                #{index + 1}
+                                            </Badge>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
                         ) : (
                             <p className="text-sm text-muted-foreground">Nenhum aluno inscrito neste projeto.</p>
                         )}
