@@ -111,10 +111,46 @@ const Monitorias = () => {
     }
   };
 
+  const fetchInscricoes = async () => {
+    if (!isStudent) return;
+
+    try {
+      const inscricoesAtuais: string[] = [];
+
+      // Verificar candidatura para cada monitoria
+      for (const monitoria of monitorias) {
+        try {
+          const response = await api.get(
+            `/monitorias/${monitoria.id}/candidatura-status`
+          );
+          if (response.data === true) {
+            inscricoesAtuais.push(monitoria.id);
+          }
+        } catch (error) {
+          // Se der erro, assume que não há candidatura
+          console.log(
+            `Erro ao verificar candidatura para monitoria ${monitoria.id}:`,
+            error
+          );
+        }
+      }
+
+      setInscricoes(inscricoesAtuais);
+    } catch (error) {
+      console.error("Erro ao carregar inscrições:", error);
+    }
+  };
+
   useEffect(() => {
     fetchMonitorias();
     fetchStatistics();
   }, [searchTerm, statusFilter, toast]);
+
+  useEffect(() => {
+    if (monitorias.length > 0 && isStudent) {
+      fetchInscricoes();
+    }
+  }, [monitorias, isStudent]);
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -240,21 +276,32 @@ const Monitorias = () => {
                   </div>
 
                   <div className="pt-4 space-y-2">
-                    {isStudent && monitoria.statusMonitoria === "APROVADA" ? (
-                      <Button
-                        className={`w-full ${
-                          inscricoes.includes(monitoria.id)
-                            ? "bg-red-600 hover:bg-red-700"
-                            : "bg-[#EC0444] hover:bg-[#EC0444]/90"
-                        }`}
-                        onClick={() =>
-                          handleInscricao(monitoria.id, monitoria.title)
-                        }
-                      >
-                        {inscricoes.includes(monitoria.id)
-                          ? "Cancelar Candidatura"
-                          : "Candidatar-se a Monitor"}
-                      </Button>
+                    {isStudent ? (
+                      monitoria.statusMonitoria === "APROVADA" ? (
+                        <Button
+                          className={`w-full ${
+                            inscricoes.includes(monitoria.id)
+                              ? "bg-red-600 hover:bg-red-700"
+                              : "bg-[#EC0444] hover:bg-[#EC0444]/90"
+                          }`}
+                          onClick={() =>
+                            handleInscricao(monitoria.id, monitoria.title)
+                          }
+                        >
+                          {inscricoes.includes(monitoria.id)
+                            ? "Cancelar Candidatura"
+                            : "Candidatar-se a Monitor"}
+                        </Button>
+                      ) : (
+                        <Button
+                          className="w-full bg-gray-500 hover:bg-gray-600"
+                          disabled
+                        >
+                          {monitoria.statusMonitoria === "PENDENTE"
+                            ? "Aguardando Aprovação"
+                            : "Monitoria Fechada"}
+                        </Button>
+                      )
                     ) : canCreate ? (
                       <Button
                         className="w-full bg-[#EC0444] hover:bg-[#EC0444]/90"
