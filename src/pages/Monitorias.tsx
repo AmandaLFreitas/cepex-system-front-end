@@ -29,6 +29,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { api } from "@/lib/api";
 import { Monitoria, MonitoriaStatistics } from "@/types/monitoria";
+import { AxiosError } from "axios";
 
 const Monitorias = () => {
   const navigate = useNavigate();
@@ -71,10 +72,23 @@ const Monitorias = () => {
           description: `Você se candidatou para monitoria de ${title}`,
         });
       }
-    } catch (error) {
+    } catch (error: unknown) {
+      let errorMsg = "Ocorreu um erro ao processar sua candidatura.";
+      if (
+        error &&
+        typeof error === "object" &&
+        (error as AxiosError).isAxiosError &&
+        (error as AxiosError).response &&
+        (error as AxiosError).response?.data &&
+        typeof ((error as AxiosError).response?.data as { message?: string })
+          .message === "string"
+      ) {
+        errorMsg = ((error as AxiosError).response?.data as { message: string })
+          .message;
+      }
       toast({
         title: "Erro",
-        description: "Ocorreu um erro ao processar sua candidatura.",
+        description: errorMsg,
         variant: "destructive",
       });
     }
@@ -213,22 +227,25 @@ const Monitorias = () => {
               <SelectContent>
                 <SelectItem value="todos">Todos os status</SelectItem>
                 <SelectItem value="PENDENTE">Pendente</SelectItem>
-                <SelectItem value="APROVADO">Aprovado</SelectItem>
-                <SelectItem value="REJEITADO">Rejeitado</SelectItem>
+                <SelectItem value="APROVADA">Aprovada</SelectItem>
+                <SelectItem value="REJEITADA">Rejeitada</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             {monitorias.map((monitoria) => (
-              <Card key={monitoria.id} className="bg-card border-border">
-                <CardHeader className="pb-4">
+              <Card
+                key={monitoria.id}
+                className="bg-card border-border flex flex-col h-[400px]"
+              >
+                <CardHeader className="pb-4 flex-shrink-0">
                   <div className="flex justify-between items-start">
-                    <CardTitle className="text-xl text-foreground">
+                    <CardTitle className="text-xl text-foreground line-clamp-2">
                       {monitoria.title}
                     </CardTitle>
                     <span
-                      className={`px-2 py-1 rounded text-xs ${
+                      className={`px-2 py-1 rounded text-xs flex-shrink-0 ml-2 ${
                         monitoria.statusMonitoria === "APROVADA"
                           ? "bg-green-500 text-white"
                           : monitoria.statusMonitoria === "PENDENTE"
@@ -244,43 +261,45 @@ const Monitorias = () => {
                     </span>
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    <Users className="h-4 w-4 mr-2" />
-                    <span>
-                      <strong>Professor:</strong>{" "}
-                      {monitoria.professor
-                        ? `${monitoria.professor.firstName} ${monitoria.professor.lastName}`
-                        : "Não definido"}
-                    </span>
-                  </div>
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    <Calendar className="h-4 w-4 mr-2" />
-                    <span>
-                      <strong>Disciplina:</strong>{" "}
-                      {monitoria.subject
-                        ? monitoria.subject.name
-                        : "Não definida"}
-                    </span>
-                  </div>
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    <Clock className="h-4 w-4 mr-2" />
-                    <span>
-                      <strong>Carga Horária:</strong> {monitoria.workload}h
-                    </span>
-                  </div>
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    <MapPin className="h-4 w-4 mr-2" />
-                    <span>
-                      <strong>Local:</strong>{" "}
-                      {monitoria.remote ? "Remoto" : monitoria.location}
-                    </span>
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    <strong>Vagas:</strong> {monitoria.vacancies}
+                <CardContent className="space-y-3 flex-1 flex flex-col">
+                  <div className="flex-1 space-y-3">
+                    <div className="flex items-center text-sm text-muted-foreground">
+                      <Users className="h-4 w-4 mr-2 flex-shrink-0" />
+                      <span className="truncate">
+                        <strong>Professor:</strong>{" "}
+                        {monitoria.professor
+                          ? `${monitoria.professor.firstName} ${monitoria.professor.lastName}`
+                          : "Não definido"}
+                      </span>
+                    </div>
+                    <div className="flex items-center text-sm text-muted-foreground">
+                      <Calendar className="h-4 w-4 mr-2 flex-shrink-0" />
+                      <span className="truncate">
+                        <strong>Disciplina:</strong>{" "}
+                        {monitoria.subject
+                          ? monitoria.subject.name
+                          : "Não definida"}
+                      </span>
+                    </div>
+                    <div className="flex items-center text-sm text-muted-foreground">
+                      <Clock className="h-4 w-4 mr-2 flex-shrink-0" />
+                      <span>
+                        <strong>Carga Horária:</strong> {monitoria.workload}h
+                      </span>
+                    </div>
+                    <div className="flex items-center text-sm text-muted-foreground">
+                      <MapPin className="h-4 w-4 mr-2 flex-shrink-0" />
+                      <span className="truncate">
+                        <strong>Local:</strong>{" "}
+                        {monitoria.remote ? "Remoto" : monitoria.location}
+                      </span>
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      <strong>Vagas:</strong> {monitoria.vacancies}
+                    </div>
                   </div>
 
-                  <div className="pt-4 space-y-2">
+                  <div className="pt-4 mt-auto">
                     {isStudent ? (
                       monitoria.statusMonitoria === "APROVADA" ? (
                         <Button

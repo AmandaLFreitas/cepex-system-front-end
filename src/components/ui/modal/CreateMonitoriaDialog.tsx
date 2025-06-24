@@ -92,6 +92,9 @@ const CreateMonitoriaDialog = ({
   const [disciplines, setDisciplines] = useState<Discipline[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
   const [professors, setProfessors] = useState<Professor[]>([]);
+  const [filteredDisciplines, setFilteredDisciplines] = useState<Discipline[]>(
+    []
+  );
   const [formData, setFormData] = useState<MonitoriaFormData>({
     title: "",
     description: "",
@@ -126,20 +129,16 @@ const CreateMonitoriaDialog = ({
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [disciplinesResponse, coursesResponse, professorsResponse] =
-          await Promise.all([
-            api.get("/disciplines"),
-            api.get("/courses"),
-            api.get("/professors"),
-          ]);
-        setDisciplines(disciplinesResponse.data);
+        const [coursesResponse, professorsResponse] = await Promise.all([
+          api.get("/courses"),
+          api.get("/professors"),
+        ]);
         setCourses(coursesResponse.data);
         setProfessors(professorsResponse.data);
       } catch (error) {
         toast({
           title: "Erro",
-          description:
-            "Não foi possível carregar as disciplinas, cursos e professores.",
+          description: "Não foi possível carregar os cursos e professores.",
           variant: "destructive",
         });
       }
@@ -149,6 +148,32 @@ const CreateMonitoriaDialog = ({
       fetchData();
     }
   }, [open, toast]);
+
+  // Buscar disciplinas quando o curso for selecionado
+  useEffect(() => {
+    const fetchDisciplines = async () => {
+      if (formData.course.id) {
+        try {
+          const response = await api.get(
+            `/disciplines?courseId=${formData.course.id}`
+          );
+          setFilteredDisciplines(
+            response.data.filter((d: Discipline) => d.active)
+          );
+        } catch (error) {
+          toast({
+            title: "Erro",
+            description: "Não foi possível carregar as disciplinas do curso.",
+            variant: "destructive",
+          });
+        }
+      } else {
+        setFilteredDisciplines([]);
+      }
+    };
+
+    fetchDisciplines();
+  }, [formData.course.id, toast]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -168,7 +193,7 @@ const CreateMonitoriaDialog = ({
   };
 
   const handleDisciplineChange = (value: string) => {
-    const discipline = disciplines.find((d) => d.id === value);
+    const discipline = filteredDisciplines.find((d) => d.id === value);
     if (discipline) {
       setFormData((prev) => ({
         ...prev,
@@ -188,6 +213,10 @@ const CreateMonitoriaDialog = ({
         course: {
           id: course.id,
           name: course.name,
+        },
+        subject: {
+          id: "",
+          name: "",
         },
       }));
     }
@@ -210,10 +239,16 @@ const CreateMonitoriaDialog = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await api.post("/monitorias", formData);
+      // Garantir que o status seja sempre PENDENTE
+      const monitoriaData = {
+        ...formData,
+        statusMonitoria: "PENDENTE",
+      };
+
+      await api.post("/monitorias", monitoriaData);
       toast({
         title: "Sucesso",
-        description: "Monitoria criada com sucesso!",
+        description: "Monitoria criada com sucesso! Aguardando aprovação.",
       });
       onOpenChange(false);
       onSuccess?.();
@@ -287,12 +322,19 @@ const CreateMonitoriaDialog = ({
                 value={formData.subject.id}
                 onValueChange={handleDisciplineChange}
                 required
+                disabled={!formData.course.id}
               >
                 <SelectTrigger className="bg-background border-border">
-                  <SelectValue placeholder="Selecione uma disciplina" />
+                  <SelectValue
+                    placeholder={
+                      !formData.course.id
+                        ? "Selecione um curso primeiro"
+                        : "Selecione uma disciplina"
+                    }
+                  />
                 </SelectTrigger>
                 <SelectContent>
-                  {disciplines.map((discipline) => (
+                  {filteredDisciplines.map((discipline) => (
                     <SelectItem key={discipline.id} value={discipline.id}>
                       {discipline.name}
                     </SelectItem>
@@ -355,29 +397,6 @@ const CreateMonitoriaDialog = ({
                   <SelectItem value="ENTREVISTA_ANALISE_HISTORICO">
                     Entrevista e Análise de Histórico
                   </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="statusMonitoria">Status da Monitoria *</Label>
-              <Select
-                value={formData.statusMonitoria}
-                onValueChange={(value) =>
-                  setFormData((prev) => ({ ...prev, statusMonitoria: value }))
-                }
-                required
-              >
-                <SelectTrigger className="bg-background border-border">
-                  <SelectValue placeholder="Selecione o status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="PENDENTE">Pendente</SelectItem>
-                  <SelectItem value="APROVADA">Aprovada</SelectItem>
-                  <SelectItem value="REJEITADA">Rejeitada</SelectItem>
-                  <SelectItem value="CANCELADA">Cancelada</SelectItem>
                 </SelectContent>
               </Select>
             </div>
