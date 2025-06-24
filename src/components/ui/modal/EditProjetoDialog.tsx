@@ -21,6 +21,7 @@ import {
 import { X, Save, Loader2 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useToast } from '../use-toast';
+import { Badge } from '@/components/ui/badge';
 
 interface User {
   id: string;
@@ -66,7 +67,20 @@ const EditProjetoDialog = ({
 }: EditProjetoDialogProps) => {
   const [formData, setFormData] = useState<Partial<Projeto>>({});
   const [isLoading, setIsLoading] = useState(false);
+  const [users, setUsers] = useState<User[]>([]);
   const { toast } = useToast();
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const response = await api.get('/users');
+        setUsers(response.data);
+      } catch (error) {
+        console.error('Erro ao carregar usuários:', error);
+      }
+    };
+    fetchUsers();
+  }, []);
 
   useEffect(() => {
     if (projeto) {
@@ -76,6 +90,8 @@ const EditProjetoDialog = ({
         startDate: projeto.startDate ? projeto.startDate.split('T')[0] : '',
         endDate: projeto.endDate ? projeto.endDate.split('T')[0] : '',
         status: projeto.status,
+        leadResearcher: projeto.leadResearcher,
+        collaborators: projeto.collaborators || [],
         materialUsage: projeto.materialUsage || '',
         researchLine: projeto.researchLine || '',
         subjectTheme: projeto.subjectTheme || '',
@@ -91,7 +107,7 @@ const EditProjetoDialog = ({
     }
   }, [projeto]);
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (field: string, value: string | User | User[]) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -104,7 +120,14 @@ const EditProjetoDialog = ({
 
     setIsLoading(true);
     try {
-      await api.put(`/research-projects/${projeto.id}`, formData);
+      // Preparar dados para envio - apenas IDs
+      const dataToSend = {
+        ...formData,
+        leadResearcher: formData.leadResearcher ? { id: formData.leadResearcher.id } : null,
+        collaborators: formData.collaborators ? formData.collaborators.map(collaborator => ({ id: collaborator.id })) : []
+      };
+
+      await api.put(`/research-projects/${projeto.id}`, dataToSend);
       toast({
         title: 'Sucesso',
         description: 'Projeto atualizado com sucesso!',
@@ -112,6 +135,7 @@ const EditProjetoDialog = ({
       onSuccess();
       onOpenChange(false);
     } catch (error) {
+      console.error('Erro ao atualizar projeto:', error);
       toast({
         title: 'Erro',
         description: 'Não foi possível atualizar o projeto.',
@@ -201,6 +225,28 @@ const EditProjetoDialog = ({
                 onChange={(e) => handleInputChange('subjectTheme', e.target.value)}
               />
             </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="leadResearcher">Pesquisador Principal</Label>
+              <Select 
+                value={formData.leadResearcher?.id || ''} 
+                onValueChange={(value) => {
+                  const selectedUser = users.find(u => u.id === value);
+                  handleInputChange('leadResearcher', selectedUser);
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o pesquisador principal" />
+                </SelectTrigger>
+                <SelectContent>
+                  {users.map((user) => (
+                    <SelectItem key={user.id} value={user.id}>
+                      {user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : user.login}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           <div className="space-y-2">
@@ -212,6 +258,59 @@ const EditProjetoDialog = ({
               required
               rows={3}
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Colaboradores</Label>
+            <div className="space-y-2">
+              {/* Colaboradores atuais */}
+              {formData.collaborators && formData.collaborators.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {formData.collaborators.map((collaborator) => (
+                    <Badge key={collaborator.id} variant="secondary" className="flex items-center gap-1">
+                      {collaborator.firstName && collaborator.lastName 
+                        ? `${collaborator.firstName} ${collaborator.lastName}` 
+                        : collaborator.login}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updatedCollaborators = formData.collaborators?.filter(c => c.id !== collaborator.id) || [];
+                          handleInputChange('collaborators', updatedCollaborators);
+                        }}
+                        className="ml-1 hover:text-destructive"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
+              )}
+
+              {/* Adicionar novo colaborador */}
+              <Select 
+                onValueChange={(value) => {
+                  const selectedUser = users.find(u => u.id === value);
+                  if (selectedUser && !formData.collaborators?.find(c => c.id === selectedUser.id)) {
+                    const updatedCollaborators = [...(formData.collaborators || []), selectedUser];
+                    handleInputChange('collaborators', updatedCollaborators);
+                  }
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Adicionar colaborador" />
+                </SelectTrigger>
+                <SelectContent>
+                  {users
+                    .filter(user => user.id !== formData.leadResearcher?.id && 
+                                   !formData.collaborators?.find(c => c.id === user.id))
+                    .map((user) => (
+                    <SelectItem key={user.id} value={user.id}>
+                      {user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : user.login}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           <div className="space-y-2">

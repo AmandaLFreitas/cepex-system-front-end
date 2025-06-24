@@ -61,7 +61,7 @@ interface Projeto {
   status: string; // ABERTO, ANALISE, COMPLETO, CANCELADO
   leadResearcher: User;
   collaborators?: User[];
-  participantes?: AlunoInscrito[];
+  inscritosCount?: number; // Contador de inscritos vindo do backend
 }
 
 const ProjetosPesquisa = () => {
@@ -294,6 +294,10 @@ const ProjetosPesquisa = () => {
                         <span>{projeto.collaborators.length} colaborador(es)</span>
                       </div>
                     )}
+                    <div className="flex items-center text-sm text-gray-300 mb-3">
+                      <Users className="h-4 w-4 mr-2 text-gray-300" />
+                      <span>{projeto.inscritosCount || 0} aluno(s) inscrito(s)</span>
+                    </div>
                     <p className="text-sm text-gray-300 mb-4 line-clamp-3">
                       {projeto.description}
                     </p>

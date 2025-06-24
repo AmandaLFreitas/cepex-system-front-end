@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Header from "@/components/ui/modal/Header";
 import Footer from "@/components/ui/modal/Footer";
 import FloatingRating from "@/components/ui/modal/FloatingRating";
@@ -11,6 +11,8 @@ import {
   Calendar,
   BookOpen,
   Eye,
+  Edit,
+  Trash2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -22,103 +24,180 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import CreateProjetoDialog from "@/components/ui/modal/CreateProjetoDialog";
+import CreateExtensionProjectDialog from "@/components/ui/modal/CreateExtensionProjectDialog";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { api } from "@/lib/api";
+import ViewExtensionProjectDetailsDialog from "@/components/ui/modal/ViewExtensionProjectDetailsDialog";
+import EditExtensionProjectDialog from "@/components/ui/modal/EditExtensionProjectDialog";
+import DeleteConfirmationDialog from "@/components/ui/modal/DeleteConfirmationDialog";
+
+interface ExtensionProject {
+  id: string;
+  title: string;
+  description: string;
+  location: string;
+  targetBeneficiaries: string;
+  startDate: string;
+  endDate: string;
+  status: string;
+  coordinator: any;
+  team?: any[];
+  inscritosCount?: number;
+}
 
 const ProjetosExtensao = () => {
   const navigate = useNavigate();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [participacoes, setParticipacoes] = useState<number[]>([2]);
+  const [projetos, setProjetos] = useState<ExtensionProject[]>([]);
+  const [inscricoes, setInscricoes] = useState<string[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("todas");
   const { toast } = useToast();
-  const { hasRole } = useAuth();
+  const { hasRole, user } = useAuth();
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [selectedProject, setSelectedProject] = useState<ExtensionProject | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const isStudent = hasRole(["STUDENT"]);
   const canCreate = hasRole(["ADMIN", "PROFESSOR", "COORDINATOR", "SECRETARY"]);
+  const canEdit = hasRole(["ADMIN", "PROFESSOR", "COORDINATOR", "SECRETARY"]);
+  const canDelete = hasRole(["ADMIN", "COORDINATOR", "SECRETARY"]);
 
-  const handleParticipacao = (projetoId: number, titulo: string) => {
-    if (participacoes.includes(projetoId)) {
-      setParticipacoes(participacoes.filter((id) => id !== projetoId));
-      toast({
-        title: "Participação cancelada",
-        description: `Você cancelou sua participação no projeto de extensão ${titulo}`,
+  const fetchProjetos = async () => {
+    try {
+      const response = await api.get("/extension-projects", {
+        params: {
+          search: searchTerm || undefined,
+          status: statusFilter !== "todas" ? statusFilter : undefined,
+        },
       });
-    } else {
-      setParticipacoes([...participacoes, projetoId]);
+      setProjetos(response.data);
+    } catch (error) {
       toast({
-        title: "Participação confirmada",
-        description: `Você se inscreveu no projeto de extensão ${titulo}`,
+        title: "Erro",
+        description: "Não foi possível carregar os projetos de extensão.",
+        variant: "destructive",
       });
     }
   };
 
-  const handleViewDetails = (projetoId: number) => {
-    // Implementar navegação para página de detalhes
-    navigate(`/projetos-extensao/${projetoId}`);
+  const fetchInscricoes = async () => {
+    if (!isStudent || !user) return;
+    try {
+      const inscricoesAtuais: string[] = [];
+      for (const projeto of projetos) {
+        try {
+          const response = await api.get(`/extension-projects/${projeto.id}/inscricao-status`);
+          if (response.data === true) {
+            inscricoesAtuais.push(projeto.id);
+          }
+        } catch (error) {
+          // Assume que não está inscrito
+        }
+      }
+      setInscricoes(inscricoesAtuais);
+    } catch (error) {
+      // erro silencioso
+    }
   };
 
-  const projetosExtensaoData = [
-    {
-      id: 1,
-      titulo: "Desenvolvimento de App para Acompanhamento de Saúde",
-      coordenador: "Prof. Dra. Camila Soares",
-      area: "Saúde Digital",
-      descricao:
-        "Criação de um aplicativo móvel para auxiliar pacientes no gerenciamento de condições crônicas.",
-      inicio: "01/08/2025",
-      alunosEnvolvidos: 6,
-      status: "Em Andamento",
-      participando: false,
-    },
-    {
-      id: 2,
-      titulo: "Oficinas de Programação para Jovens da Comunidade",
-      coordenador: "Prof. Dr. Eduardo Lima",
-      area: "Educação Tecnológica",
-      descricao:
-        "Série de workshops práticos sobre lógica de programação e desenvolvimento web básico.",
-      inicio: "10/09/2025",
-      alunosEnvolvidos: 15,
-      status: "Em Andamento",
-      participando: true,
-    },
-    {
-      id: 3,
-      titulo: "Sistema de Gerenciamento de Resíduos com IoT",
-      coordenador: "Prof. Dra. Mariana Costa",
-      area: "Sustentabilidade e IoT",
-      descricao:
-        "Implementação de uma solução de IoT para monitorar e otimizar a coleta seletiva em áreas urbanas.",
-      inicio: "05/10/2025",
-      alunosEnvolvidos: 9,
-      status: "Aguardando Início",
-      participando: false,
-    },
-    {
-      id: 4,
-      titulo: "Cibersegurança para Pequenas Empresas Locais",
-      coordenador: "Prof. Esp. Bruno Martins",
-      area: "Segurança da Informação",
-      descricao:
-        "Consultoria e treinamento em práticas básicas de cibersegurança para empresários e colaboradores.",
-      inicio: "20/11/2025",
-      alunosEnvolvidos: 7,
-      status: "Em Planejamento",
-      participando: false,
-    },
-    {
-      id: 5,
-      titulo: "Plataforma Online de Apoio à Leitura Inclusiva",
-      coordenador: "Prof. Ms. Clara Viana",
-      area: "Tecnologia Assistiva",
-      descricao:
-        "Criação de uma plataforma web com recursos para facilitar a leitura para pessoas com dislexia.",
-      inicio: "15/12/2025",
-      alunosEnvolvidos: 10,
-      status: "Em Planejamento",
-      participando: false,
-    },
-  ];
+  useEffect(() => {
+    fetchProjetos();
+  }, [searchTerm, statusFilter]);
+
+  useEffect(() => {
+    if (projetos.length > 0 && isStudent) {
+      fetchInscricoes();
+    }
+  }, [projetos, isStudent]);
+
+  const handleInscricao = async (projetoId: string, title: string) => {
+    try {
+      if (inscricoes.includes(projetoId)) {
+        await api.delete(`/extension-projects/${projetoId}/inscrever`);
+        setInscricoes(inscricoes.filter((id) => id !== projetoId));
+        toast({
+          title: "Inscrição cancelada",
+          description: `Você cancelou sua inscrição no projeto de extensão ${title}`,
+        });
+      } else {
+        await api.post(`/extension-projects/${projetoId}/inscrever`);
+        setInscricoes([...inscricoes, projetoId]);
+        toast({
+          title: "Inscrição realizada",
+          description: `Você se inscreveu no projeto de extensão ${title}`,
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Ocorreu um erro ao processar sua inscrição.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleViewDetails = (projeto: ExtensionProject) => {
+    setSelectedProject(projeto);
+    setIsViewDialogOpen(true);
+  };
+
+  const handleEditProject = (projeto: ExtensionProject) => {
+    setSelectedProject(projeto);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleDeleteProject = (projeto: ExtensionProject) => {
+    setSelectedProject(projeto);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!selectedProject) return;
+    setIsDeleting(true);
+    try {
+      await api.delete(`/extension-projects/${selectedProject.id}`);
+      toast({
+        title: "Sucesso",
+        description: "Projeto de extensão excluído com sucesso!",
+      });
+      fetchProjetos();
+      setIsDeleteDialogOpen(false);
+      setSelectedProject(null);
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível excluir o projeto de extensão.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const getStatusDisplay = (status: string) => {
+    switch (status) {
+      case "ABERTO":
+        return { text: "Aberto", color: "bg-green-500" };
+      case "ANALISE":
+        return { text: "Em Análise", color: "bg-yellow-500" };
+      case "COMPLETO":
+        return { text: "Concluído", color: "bg-blue-500" };
+      case "CANCELADO":
+        return { text: "Cancelado", color: "bg-red-500" };
+      default:
+        return { text: status, color: "bg-gray-500" };
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    return date.toLocaleDateString('pt-BR');
+  };
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -166,9 +245,11 @@ const ProjetosExtensao = () => {
               <Input
                 placeholder="Buscar por título, coordenador ou área..."
                 className="pl-10"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <Select defaultValue="todas">
+            <Select defaultValue="todas" value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-full md:w-48">
                 <SelectValue placeholder="Filtrar por área de tecnologia" />
               </SelectTrigger>
@@ -194,73 +275,100 @@ const ProjetosExtensao = () => {
             </Select>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            {projetosExtensaoData.map((projeto) => (
-              <Card key={projeto.id} className="bg-card border-border">
-                <CardHeader className="pb-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {projetos.map((projeto) => (
+              <Card key={projeto.id} className="bg-gray-800 text-white shadow-lg rounded-lg flex flex-col">
+                <CardHeader>
                   <div className="flex justify-between items-start">
-                    <CardTitle className="text-xl text-foreground mb-2">
-                      {projeto.titulo}
+                    <CardTitle className="text-xl font-bold mb-2 text-white">
+                      {projeto.title}
                     </CardTitle>
-                    <span
-                      className={`px-2 py-1 rounded text-xs ${
-                        projeto.status === "Em Andamento"
-                          ? "bg-blue-600 text-white"
-                          : projeto.status === "Aguardando Início"
-                          ? "bg-yellow-600 text-white"
-                          : projeto.status === "Em Planejamento"
-                          ? "bg-purple-600 text-white"
-                          : "bg-green-500 text-white"
-                      }`}
-                    >
-                      {projeto.status}
+                    <span className={`text-xs font-semibold px-2 py-1 rounded-full ${getStatusDisplay(projeto.status).color}`}>
+                      {getStatusDisplay(projeto.status).text}
                     </span>
                   </div>
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    <Users className="h-4 w-4 mr-2" />
-                    <span>{projeto.coordenador}</span>
-                  </div>
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    <BookOpen className="h-4 w-4 mr-2" />
-                    <span>{projeto.area}</span>
-                  </div>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <p className="text-sm text-muted-foreground">
-                    {projeto.descricao}
-                  </p>
-
-                  <div className="flex items-center justify-between text-sm text-muted-foreground">
-                    <div className="flex items-center">
-                      <Calendar className="h-4 w-4 mr-2" />
-                      <span>Início: {projeto.inicio}</span>
+                <CardContent className="flex-grow flex flex-col">
+                  <div className="flex-grow">
+                    <div className="flex items-center text-sm text-gray-300 mb-3">
+                      <Users className="h-4 w-4 mr-2 text-gray-300" />
+                      <span>{projeto.coordinator?.name || projeto.coordinator?.login}</span>
                     </div>
-                    <span>{projeto.alunosEnvolvidos} alunos envolvidos</span>
+                    {projeto.team && projeto.team.length > 0 && (
+                      <div className="flex items-center text-sm text-gray-300 mb-3">
+                        <BookOpen className="h-4 w-4 mr-2 text-gray-300" />
+                        <span>{projeto.team.length} colaborador(es)</span>
+                      </div>
+                    )}
+                    <div className="flex items-center text-sm text-gray-300 mb-3">
+                      <Users className="h-4 w-4 mr-2 text-gray-300" />
+                      <span>{projeto.inscritosCount || 0} aluno(s) inscrito(s)</span>
+                    </div>
+                    <p className="text-sm text-gray-300 mb-4 line-clamp-3">
+                      {projeto.description}
+                    </p>
+                  </div>
+                  
+                  <div className="border-t border-gray-600 pt-4 mt-4">
+                    <div className="flex justify-between text-sm text-gray-300">
+                      <div className="flex items-center">
+                        <Calendar className="h-4 w-4 mr-2 text-gray-300" />
+                        <span>Início: {formatDate(projeto.startDate)}</span>
+                      </div>
+                      <div className="flex items-center">
+                        <Calendar className="h-4 w-4 mr-2 text-gray-300" />
+                        <span>Fim: {formatDate(projeto.endDate)}</span>
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="pt-2">
-                    {isStudent ? (
+                  <div className="mt-4 flex flex-col gap-2">
+                    {!isStudent && (
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          className="flex-1 bg-[#EC0444] hover:bg-[#EC0444]/90 text-white border-[#EC0444] hover:border-[#EC0444]/90"
+                          onClick={() => handleViewDetails(projeto)}
+                        >
+                          <Eye className="h-4 w-4 mr-2" />
+                          Ver Mais
+                        </Button>
+                        {canEdit && (
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="bg-gray-700 hover:bg-gray-600 border-gray-600"
+                            onClick={() => handleEditProject(projeto)}
+                          >
+                            <Edit className="h-4 w-4 text-gray-300" />
+                          </Button>
+                        )}
+                        {canDelete && (
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="text-[#EC0444] hover:text-[#EC0444]/90 border-[#EC0444] hover:border-[#EC0444]/90 bg-gray-700 hover:bg-gray-600"
+                            onClick={() => handleDeleteProject(projeto)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                    )}
+                    
+                    {isStudent && (
                       <Button
-                        className={`w-full ${
-                          participacoes.includes(projeto.id)
-                            ? "bg-red-600 hover:bg-red-700"
-                            : "bg-[#EC0444] hover:bg-[#EC0444]/90"
-                        }`}
-                        onClick={() =>
-                          handleParticipacao(projeto.id, projeto.titulo)
+                        onClick={() => handleInscricao(projeto.id, projeto.title)}
+                        className="w-full"
+                        variant={inscricoes.includes(projeto.id) ? 'destructive' : 'default'}
+                        disabled={projeto.status !== 'ABERTO'}
+                      >
+                        {projeto.status !== 'ABERTO' 
+                          ? 'Inscrições Fechadas' 
+                          : inscricoes.includes(projeto.id) 
+                            ? 'Cancelar Inscrição' 
+                            : 'Inscrever-se'
                         }
-                      >
-                        {participacoes.includes(projeto.id)
-                          ? "Cancelar Participação"
-                          : "Participar"}
-                      </Button>
-                    ) : (
-                      <Button
-                        className="w-full bg-[#EC0444] hover:bg-[#EC0444]/90"
-                        onClick={() => handleViewDetails(projeto.id)}
-                      >
-                        <Eye className="h-4 w-4 mr-2" />
-                        Ver Mais
                       </Button>
                     )}
                   </div>
@@ -274,11 +382,32 @@ const ProjetosExtensao = () => {
       <Footer />
       <FloatingRating />
       {canCreate && (
-        <CreateProjetoDialog
+        <CreateExtensionProjectDialog
           open={isCreateDialogOpen}
           onOpenChange={setIsCreateDialogOpen}
+          onSuccess={fetchProjetos}
         />
       )}
+      <ViewExtensionProjectDetailsDialog
+        projeto={selectedProject}
+        open={isViewDialogOpen}
+        onOpenChange={setIsViewDialogOpen}
+        userRoles={user?.roles || []}
+      />
+      <EditExtensionProjectDialog
+        projeto={selectedProject}
+        open={isEditDialogOpen}
+        onOpenChange={setIsEditDialogOpen}
+        onSuccess={fetchProjetos}
+      />
+      <DeleteConfirmationDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        onConfirm={confirmDelete}
+        title="Excluir Projeto de Extensão"
+        description={`Tem certeza que deseja excluir o projeto "${selectedProject?.title}"? Esta ação não pode ser desfeita.`}
+        isLoading={isDeleting}
+      />
     </div>
   );
 };
