@@ -263,18 +263,10 @@ const CreateProjetoDialog = ({
         endDate: formData.endDate,
         status: formData.status,
         leadResearcher: {
-          id: selectedProfessors[0].user.id,
-          login: selectedProfessors[0].user.login,
-          email: selectedProfessors[0].email,
-          status: true,
-          role: "PROFESSOR"
+          id: selectedProfessors[0].user.id
         },
         collaborators: selectedProfessors.slice(1).map(prof => ({
-          id: prof.user.id,
-          login: prof.user.login,
-          email: prof.email,
-          status: true,
-          role: "PROFESSOR"
+          id: prof.user.id
         })),
         materialUsage: formData.materialUsage,
         researchLine: formData.researchLine,
