@@ -21,9 +21,7 @@ import {
   LogOut,
 } from "lucide-react";
 
-interface SidebarProps extends React.HTMLAttributes<HTMLDivElement> {}
-
-export function Sidebar({ className }: SidebarProps) {
+export function Sidebar({ className }: React.HTMLAttributes<HTMLDivElement>) {
   const [isOpen, setIsOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const location = useLocation();
@@ -72,6 +70,7 @@ export function Sidebar({ className }: SidebarProps) {
       href: "/aprovacoes",
       label: "Aprovações",
       icon: CheckCircle,
+      roles: ["ADMIN", "COORDENATION", "SECRETARY"],
     },
     {
       href: "/certificados",
@@ -97,7 +96,8 @@ export function Sidebar({ className }: SidebarProps) {
     </div>
   );
 
-  const currentLogo = theme === "dark" ? "./logo branca png.png" : "./logo em png.png";
+  const currentLogo =
+    theme === "dark" ? "./logo branca png.png" : "./logo em png.png";
 
   const SidebarContent = () => (
     <div className="flex h-full flex-col gap-2">
@@ -109,7 +109,7 @@ export function Sidebar({ className }: SidebarProps) {
             isCollapsed && "hidden"
           )}
         >
-          <img className="w-5 h-10" src= {currentLogo} alt="LOGO BIOPARK" />
+          <img className="w-5 h-10" src={currentLogo} alt="LOGO BIOPARK" />
           <span className="text-xl">CEPEX SYSTEM</span>
         </Link>
         {!isCollapsed && (
@@ -126,7 +126,10 @@ export function Sidebar({ className }: SidebarProps) {
       <ScrollArea className="flex-1 px-3">
         <div className="space-y-1 p-2">
           {routes.map((route) => {
-            if (route.roles && !route.roles.includes(user?.role || "")) {
+            if (
+              route.roles &&
+              !route.roles.some((role) => user?.roles?.includes(role))
+            ) {
               return null;
             }
             return (
